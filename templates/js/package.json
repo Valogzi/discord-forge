@@ -1,11 +1,10 @@
 {
-	"name": "js",
 	"version": "1.0.0",
 	"description": "Made with discord-forge CLI",
 	"main": "index.js",
 	"scripts": {
-		"start": "node index.js",
-		"deployCommands": "node deploycommands.js"
+		"start": "node src/index.js",
+		"deployCommands": "node src/deploycommands.js"
 	},
 	"keywords": [],
 	"author": "Valogzi",

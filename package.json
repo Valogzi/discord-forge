@@ -14,6 +14,13 @@
 		"prod": "pnpm build && pnpm start",
 		"cli": "ts-node src/main.ts"
 	},
+	"bin": {
+		"create-discord-forge": "dist/main.js"
+	},
+	"files": [
+		"dist",
+		"templates"
+	],
 	"devDependencies": {
 		"@types/inquirer": "^9.0.8",
 		"@types/node": "^24.0.7",

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import fs from 'fs';
@@ -6,18 +8,14 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 const program = new Command();
-program
-	.name('discord-forge')
-	.description(
-		'A CLI tool for creating Discord bots whith operational templates.',
-	)
-	.version('0.1.0');
-
 const defaultProjectName = path.basename(process.cwd());
 
 program
-	.command('create')
-	.description('Clone a discord bot template.')
+	.name('create-discord-forge')
+	.description(
+		'A CLI tool for creating Discord bots whith operational templates.',
+	)
+	.version('0.1.0')
 	.action(async () => {
 		const answers = inquirer.prompt([
 			{
@@ -54,7 +52,7 @@ program
 		]);
 
 		const { PROJECT_NAME, TEMPLATE, installDeps, bin } = await answers;
-		const templatePath = path.join(__dirname, `./templates/${TEMPLATE}`);
+		const templatePath = path.join(__dirname, `../templates/${TEMPLATE}`);
 		console.log(`📂 Using template: ${templatePath}`);
 		const targetPath = path.join(process.cwd(), PROJECT_NAME);
 
