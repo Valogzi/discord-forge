@@ -39,11 +39,6 @@ export default function InteractionCreate(client: Client) {
 					content: 'You clicked the custom button!',
 					flags: MessageFlags.Ephemeral,
 				});
-			} else {
-				await interaction.reply({
-					content: 'Unknown button interaction.',
-					flags: MessageFlags.Ephemeral,
-				});
 			}
 		}
 	});

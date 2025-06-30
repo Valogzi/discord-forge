@@ -5,10 +5,7 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from 'discord.js';
-import type {
-	ChatInputCommandInteraction,
-	ButtonInteraction,
-} from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
 	.setName('ban')
@@ -31,12 +28,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		.setDescription(`Are you sure to ban ${user.tag} ?`);
 
 	const confirmButton = new ButtonBuilder()
-		.setCustomId('ban_button')
-		.setLabel('Confirm Ban')
+		.setCustomId(`ban_button::${user.id}`)
+		.setLabel(`Confirm Ban`)
 		.setStyle(ButtonStyle.Danger);
+
+	const cancelButton = new ButtonBuilder()
+		.setCustomId('cancel_ban_button')
+		.setLabel('Cancel')
+		.setStyle(ButtonStyle.Secondary);
 
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
 		confirmButton,
+		cancelButton,
 	);
 
 	await interaction.reply({

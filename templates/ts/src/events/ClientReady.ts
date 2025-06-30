@@ -7,7 +7,10 @@ export default function ClientReady(client: Client) {
 
 		readyClient.user.setPresence({
 			activities: [
-				{ name: 'Made with discord-forge CLI', type: ActivityType.Playing },
+				{
+					name: 'Made with create-discord-forge CLI',
+					type: ActivityType.Playing,
+				},
 			],
 			status: 'online',
 		});

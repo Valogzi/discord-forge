@@ -1,4 +1,10 @@
-const { SlashCommandBuilder } = require('discord.js');
+const {
+	SlashCommandBuilder,
+	EmbedBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	ActionRowBuilder,
+} = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -24,11 +30,19 @@ module.exports = {
 			.setDescription(`Are you sure to ban ${user.tag} ?`);
 
 		const confirmButton = new ButtonBuilder()
-			.setCustomId('ban_button')
-			.setLabel('Confirm Ban')
+			.setCustomId(`ban_button::${user.id}`)
+			.setLabel(`Confirm Ban`)
 			.setStyle(ButtonStyle.Danger);
 
-		const row = new ActionRowBuilder().addComponents(confirmButton);
+		const cancelButton = new ButtonBuilder()
+			.setCustomId('cancel_ban_button')
+			.setLabel('Cancel')
+			.setStyle(ButtonStyle.Secondary);
+
+		const row = new ActionRowBuilder().addComponents(
+			confirmButton,
+			cancelButton,
+		);
 
 		await interaction.reply({
 			embeds: [embed],

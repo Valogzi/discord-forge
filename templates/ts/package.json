@@ -1,6 +1,6 @@
 {
 	"version": "1.0.0",
-	"description": "Made with discord-forge CLI",
+	"description": "Made with create-discord-forge CLI",
 	"main": "src/index.ts",
 	"scripts": {
 		"dev": "ts-node src/index.ts",

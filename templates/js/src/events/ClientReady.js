@@ -5,7 +5,7 @@ module.exports = client => {
 		console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 
 		client.user.setPresence({
-			activities: [{ name: 'Made with discord-forge CLI', type: 0 }],
+			activities: [{ name: 'Made with create-discord-forge CLI', type: 0 }],
 			status: 'online',
 		});
 	});

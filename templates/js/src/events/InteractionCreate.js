@@ -44,11 +44,6 @@ module.exports = client => {
 					content: 'You clicked the custom button!',
 					ephemeral: true,
 				});
-			} else {
-				await interaction.reply({
-					content: 'Unknown button interaction.',
-					flags: MessageFlags.Ephemeral,
-				});
 			}
 		}
 	});
