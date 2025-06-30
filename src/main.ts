@@ -54,10 +54,13 @@ program
 		const { PROJECT_NAME, TEMPLATE, installDeps, bin } = await answers;
 		const templatePath = path.join(__dirname, `../templates/${TEMPLATE}`);
 		console.log(`📂 Using template: ${templatePath}`);
-		const targetPath = path.join(process.cwd(), PROJECT_NAME);
+		const targetPath = path.join(
+			process.cwd(),
+			PROJECT_NAME == '.' ? '' : PROJECT_NAME,
+		);
 
 		if (fs.existsSync(targetPath) && PROJECT_NAME !== '.') {
-			console.error(`❌ Le dossier "${PROJECT_NAME}" existe déjà.`);
+			console.error(`❌ The folder "${PROJECT_NAME}" already exist.`);
 			process.exit(1);
 		}
 
