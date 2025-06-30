@@ -59,9 +59,11 @@ program
 			PROJECT_NAME == '.' ? '' : PROJECT_NAME,
 		);
 
-		if (fs.existsSync(targetPath) && PROJECT_NAME !== '.') {
-			console.error(`❌ The folder "${PROJECT_NAME}" already exist.`);
-			process.exit(1);
+		if (PROJECT_NAME !== '.') {
+			if (fs.existsSync(targetPath)) {
+				console.error(`❌ The folder "${PROJECT_NAME}" already exist.`);
+				process.exit(1);
+			}
 		}
 
 		fs.cpSync(templatePath, targetPath, { recursive: true });
