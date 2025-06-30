@@ -52,10 +52,12 @@ program
     const { PROJECT_NAME, TEMPLATE, installDeps, bin } = await answers;
     const templatePath = path_1.default.join(__dirname, `../templates/${TEMPLATE}`);
     console.log(`📂 Using template: ${templatePath}`);
-    const targetPath = path_1.default.join(process.cwd(), PROJECT_NAME);
-    if (fs_1.default.existsSync(targetPath) && targetPath !== '.') {
-        console.error(`❌ Le dossier "${PROJECT_NAME}" existe déjà.`);
-        process.exit(1);
+    const targetPath = path_1.default.join(process.cwd(), PROJECT_NAME == '.' ? '' : PROJECT_NAME);
+    if (PROJECT_NAME !== '.') {
+        if (fs_1.default.existsSync(targetPath)) {
+            console.error(`❌ The folder "${PROJECT_NAME}" already exist.`);
+            process.exit(1);
+        }
     }
     fs_1.default.cpSync(templatePath, targetPath, { recursive: true });
     console.log(`✅ The "${PROJECT_NAME}" project has been successfully created !`);
