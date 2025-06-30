@@ -4,7 +4,7 @@
 		"dotenv": "^17.0.0",
 		"inquirer": "^12.6.3"
 	},
-	"name": "@valogzi/discord-forge",
+	"name": "create-discord-forge",
 	"version": "1.0.0",
 	"main": "dist/main.js",
 	"scripts": {
