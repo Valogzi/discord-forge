@@ -16,8 +16,7 @@ module.exports = {
 			option
 				.setName('user')
 				.setDescription('The user to send a private message to')
-				.setRequired(false)
-				.setAutocomplete(true),
+				.setRequired(false),
 		),
 
 	async execute(interaction) {
