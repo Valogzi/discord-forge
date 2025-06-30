@@ -56,7 +56,7 @@ program
 		console.log(`📂 Using template: ${templatePath}`);
 		const targetPath = path.join(process.cwd(), PROJECT_NAME);
 
-		if (fs.existsSync(targetPath) && targetPath !== '.') {
+		if (fs.existsSync(targetPath) && PROJECT_NAME !== '.') {
 			console.error(`❌ Le dossier "${PROJECT_NAME}" existe déjà.`);
 			process.exit(1);
 		}
