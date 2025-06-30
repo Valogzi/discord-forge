@@ -6,17 +6,17 @@ export const data = new SlashCommandBuilder()
 	.setDescription(
 		'Sends a private message to the user who invoked the command.',
 	)
-	.addUserOption(option =>
-		option
-			.setName('user')
-			.setDescription('The user to send a private message to')
-			.setRequired(false),
-	)
 	.addStringOption(option =>
 		option
 			.setName('message')
 			.setDescription('The message to send')
 			.setRequired(true),
+	)
+	.addUserOption(option =>
+		option
+			.setName('user')
+			.setDescription('The user to send a private message to')
+			.setRequired(false),
 	);
 
 export async function execute(interaction: ChatInputCommandInteraction) {
