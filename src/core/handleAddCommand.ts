@@ -156,9 +156,15 @@ async function addHandlersToIndex(
 
 	// Ajouter les imports
 	const componentsPath = parseEnvData.aliases?.components || 'src/components';
-	const relativeComponentsPath = path
-		.relative(path.dirname(indexPath), path.join(process.cwd(), componentsPath))
+	const fullComponentsPath = path.join(process.cwd(), componentsPath);
+	let relativeComponentsPath = path
+		.relative(path.dirname(indexPath), fullComponentsPath)
 		.replace(/\\/g, '/');
+
+	// S'assurer que le chemin relatif commence par ./ ou ../
+	if (!relativeComponentsPath.startsWith('.')) {
+		relativeComponentsPath = './' + relativeComponentsPath;
+	}
 
 	for (const eventFile of eventFiles) {
 		// Vérifier si l'import existe déjà

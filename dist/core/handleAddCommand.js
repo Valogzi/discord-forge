@@ -117,9 +117,14 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath) {
         .map(file => path_1.default.basename(file, path_1.default.extname(file)));
     // Ajouter les imports
     const componentsPath = parseEnvData.aliases?.components || 'src/components';
-    const relativeComponentsPath = path_1.default
-        .relative(path_1.default.dirname(indexPath), path_1.default.join(process.cwd(), componentsPath))
+    const fullComponentsPath = path_1.default.join(process.cwd(), componentsPath);
+    let relativeComponentsPath = path_1.default
+        .relative(path_1.default.dirname(indexPath), fullComponentsPath)
         .replace(/\\/g, '/');
+    // S'assurer que le chemin relatif commence par ./ ou ../
+    if (!relativeComponentsPath.startsWith('.')) {
+        relativeComponentsPath = './' + relativeComponentsPath;
+    }
     for (const eventFile of eventFiles) {
         // Vérifier si l'import existe déjà
         const existingImport = sourceFile
