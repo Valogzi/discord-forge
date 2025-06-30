@@ -1,11 +1,13 @@
 {
 	"dependencies": {
 		"commander": "^14.0.0",
+		"discord.js": "^14.21.0",
 		"dotenv": "^17.0.0",
-		"inquirer": "^12.6.3"
+		"inquirer": "^12.6.3",
+		"ts-morph": "^26.0.0"
 	},
 	"name": "create-discord-forge",
-	"version": "1.0.8",
+	"version": "1.0.9",
 	"main": "dist/main.js",
 	"scripts": {
 		"dev": "ts-node src/main.ts",

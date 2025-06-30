@@ -1,0 +1,6 @@
+{
+	"ts": false,
+	"aliases": {
+		"components": "src/components"
+	}
+}

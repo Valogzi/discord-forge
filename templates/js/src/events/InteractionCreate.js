@@ -1,5 +1,7 @@
 const { Events } = require('discord.js');
 
+// IMPORT_MARKER
+
 module.exports = client => {
 	client.on(Events.InteractionCreate, async interaction => {
 		if (interaction.isChatInputCommand()) {
@@ -33,6 +35,8 @@ module.exports = client => {
 			}
 		} else if (interaction.isButton()) {
 			const buttonId = interaction.customId;
+
+			// BAN_MODULE_APPEND
 
 			// Handle button interactions
 			if (buttonId === 'custom_button') {

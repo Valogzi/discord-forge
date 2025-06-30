@@ -1,0 +1,18 @@
+{
+	"ts": {
+		"copy": [
+			{
+				"from": "files/commands/ban.ts",
+				"to": "src/commands/admin/ban.ts"
+			}
+		]
+	},
+	"js": {
+		"copy": [
+			{
+				"from": "files/commands/ban.js",
+				"to": "src/commands/admin/ban.js"
+			}
+		]
+	}
+}

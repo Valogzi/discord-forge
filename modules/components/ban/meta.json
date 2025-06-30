@@ -1,0 +1,5 @@
+{
+	"name": "ban",
+	"description": "Advenced ban command",
+	"compatibleTemplates": ["ts", "js"]
+}
