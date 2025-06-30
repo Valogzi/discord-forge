@@ -4,7 +4,8 @@
 	"description": "Made with discord-forge CLI",
 	"main": "index.js",
 	"scripts": {
-		"start": "node index.js"
+		"start": "node index.js",
+		"deployCommands": "node deploycommands.js"
 	},
 	"keywords": [],
 	"author": "Valogzi",

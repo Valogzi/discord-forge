@@ -78,9 +78,7 @@ program
 					console.log('🔧 Installed developpement TypeScript dependencies...');
 
 				console.log('📦 Installed dependencies.');
-				execSync(`cd ${PROJECT_NAME}`, {
-					stdio: 'inherit',
-				});
+				execSync(`cd ${PROJECT_NAME}`);
 			} catch (e) {
 				console.log(
 					`⚠️ Automatic installation failed. Run "${bin} install" manually.`,
