@@ -1,0 +1,16 @@
+{
+	"name": "js",
+	"version": "1.0.0",
+	"description": "Made with discord-forge CLI",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"keywords": [],
+	"author": "Valogzi",
+	"license": "ISC",
+	"packageManager": "pnpm@10.12.4",
+	"dependencies": {
+		"discord.js": "^14.21.0"
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"dependencies": {
+		"commander": "^14.0.0",
+		"dotenv": "^17.0.0",
+		"inquirer": "^12.6.3"
+	},
+	"name": "discord-forge",
+	"version": "1.0.0",
+	"main": "dist/main.js",
+	"scripts": {
+		"dev": "ts-node src/main.ts",
+		"build": "tsc",
+		"start": "node dist/main.js",
+		"prod": "pnpm build && pnpm start",
+		"cli": "ts-node src/main.ts"
+	},
+	"devDependencies": {
+		"@types/inquirer": "^9.0.8",
+		"@types/node": "^24.0.7",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.8.3"
+	}
+}
