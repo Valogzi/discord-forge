@@ -7,7 +7,7 @@ import {
 	ActionRowBuilder,
 } from 'discord.js';
 
-export default function BanCommandHandler(client: Client) {
+export function BanCommandHandler(client: Client) {
 	client.on('interactionCreate', async interaction => {
 		// Vérifier si c'est une interaction de bouton
 		if (!interaction.isButton()) return;

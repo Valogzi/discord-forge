@@ -7,6 +7,7 @@ exports.handleAddCommand = handleAddCommand;
 const inquirer_1 = __importDefault(require("inquirer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const ts_morph_1 = require("ts-morph");
 const AVAILABLE_FEATURES = ['ban'];
 async function handleAddCommand(feature) {
     let selectedFeature = feature;
@@ -89,7 +90,98 @@ async function installFeature(name) {
             .filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js')).length
         : 0;
     const totalFiles = copyRules.length + eventsCount;
+    // Ajouter les handlers dans l'index du projet
+    await addHandlersToIndex(name, parseEnvData, templatePath);
     console.log(`✅ Installed feature "${name}" (${parseEnvData.ts ? 'TypeScript' : 'JavaScript'}) - ${totalFiles} files copied`);
+    await addHandlersToIndex(name, parseEnvData, templatePath);
+}
+async function addHandlersToIndex(featureName, parseEnvData, templatePath) {
+    const project = new ts_morph_1.Project();
+    const indexPath = parseEnvData.ts
+        ? path_1.default.join(process.cwd(), 'src', 'index.ts')
+        : path_1.default.join(process.cwd(), 'src', 'index.js');
+    if (!fs_1.default.existsSync(indexPath)) {
+        console.warn(`⚠️ Index file not found: ${indexPath}`);
+        return;
+    }
+    // Charger le fichier index
+    const sourceFile = project.addSourceFileAtPath(indexPath);
+    // Trouver les fichiers events à importer
+    const eventsPath = path_1.default.join(templatePath, 'files', 'events');
+    if (!fs_1.default.existsSync(eventsPath)) {
+        return;
+    }
+    const eventFiles = fs_1.default
+        .readdirSync(eventsPath)
+        .filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
+        .map(file => path_1.default.basename(file, path_1.default.extname(file)));
+    // Ajouter les imports
+    const componentsPath = parseEnvData.aliases?.components || 'src/components';
+    const relativeComponentsPath = path_1.default
+        .relative(path_1.default.dirname(indexPath), path_1.default.join(process.cwd(), componentsPath))
+        .replace(/\\/g, '/');
+    for (const eventFile of eventFiles) {
+        // Vérifier si l'import existe déjà
+        const existingImport = sourceFile
+            .getImportDeclarations()
+            .find(imp => imp.getModuleSpecifierValue().includes(eventFile));
+        if (!existingImport) {
+            if (parseEnvData.ts) {
+                // TypeScript: import destructuré
+                const namedImports = eventFile.includes('Handler')
+                    ? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
+                    : [eventFile];
+                sourceFile.addImportDeclaration({
+                    moduleSpecifier: `${relativeComponentsPath}/${eventFile}`,
+                    namedImports: namedImports,
+                });
+            }
+            else {
+                // JavaScript: require destructuré
+                const namedImports = eventFile.includes('Handler')
+                    ? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
+                    : [eventFile];
+                sourceFile.addStatements(`const { ${namedImports.join(', ')} } = require('${relativeComponentsPath}/${eventFile}');`);
+            }
+        }
+    }
+    // Trouver où ajouter les appels de handlers (avant client.login)
+    const clientLogin = sourceFile
+        .getDescendantsOfKind(ts_morph_1.SyntaxKind.CallExpression)
+        .find(call => {
+        const expression = call.getExpression();
+        return (expression.getKind() === ts_morph_1.SyntaxKind.PropertyAccessExpression &&
+            expression.getText().includes('client.login'));
+    });
+    if (clientLogin) {
+        const statement = clientLogin.getFirstAncestorByKind(ts_morph_1.SyntaxKind.ExpressionStatement);
+        if (statement) {
+            // Ajouter les appels de handlers avant client.login()
+            const statementsToAdd = [];
+            for (const eventFile of eventFiles) {
+                const handlerCall = `${eventFile}(client);`;
+                const modalHandlerCall = eventFile.includes('Handler')
+                    ? `handle${eventFile.replace('CommandHandler', '')}Modal(client);`
+                    : null;
+                // Vérifier si l'appel existe déjà
+                const existingCall = sourceFile.getFullText().includes(handlerCall);
+                if (!existingCall) {
+                    statementsToAdd.push(handlerCall);
+                    if (modalHandlerCall) {
+                        statementsToAdd.push(modalHandlerCall);
+                    }
+                }
+            }
+            // Insérer les statements avant client.login()
+            if (statementsToAdd.length > 0) {
+                const statementIndex = sourceFile.getStatements().indexOf(statement);
+                sourceFile.insertStatements(statementIndex, statementsToAdd);
+            }
+        }
+    }
+    // Sauvegarder les modifications
+    await sourceFile.save();
+    console.log(`📝 Updated: ${path_1.default.relative(process.cwd(), indexPath)}`);
 }
 function copyFileWithAliases(sourcePath, targetPath) {
     // Créer le dossier parent si nécessaire

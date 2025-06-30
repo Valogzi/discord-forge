@@ -1,6 +1,7 @@
 import inquirer from 'inquirer';
 import path from 'path';
 import fs from 'fs';
+import { Project, SyntaxKind } from 'ts-morph';
 
 const AVAILABLE_FEATURES = ['ban'];
 
@@ -112,11 +113,131 @@ async function installFeature(name: string) {
 		: 0;
 	const totalFiles = copyRules.length + eventsCount;
 
+	// Ajouter les handlers dans l'index du projet
+	await addHandlersToIndex(name, parseEnvData, templatePath);
+
 	console.log(
 		`✅ Installed feature "${name}" (${
 			parseEnvData.ts ? 'TypeScript' : 'JavaScript'
 		}) - ${totalFiles} files copied`,
 	);
+
+	await addHandlersToIndex(name, parseEnvData, templatePath);
+}
+
+async function addHandlersToIndex(
+	featureName: string,
+	parseEnvData: { ts: boolean; aliases: Record<string, string> },
+	templatePath: string,
+) {
+	const project = new Project();
+	const indexPath = parseEnvData.ts
+		? path.join(process.cwd(), 'src', 'index.ts')
+		: path.join(process.cwd(), 'src', 'index.js');
+
+	if (!fs.existsSync(indexPath)) {
+		console.warn(`⚠️ Index file not found: ${indexPath}`);
+		return;
+	}
+
+	// Charger le fichier index
+	const sourceFile = project.addSourceFileAtPath(indexPath);
+
+	// Trouver les fichiers events à importer
+	const eventsPath = path.join(templatePath, 'files', 'events');
+	if (!fs.existsSync(eventsPath)) {
+		return;
+	}
+
+	const eventFiles = fs
+		.readdirSync(eventsPath)
+		.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
+		.map(file => path.basename(file, path.extname(file)));
+
+	// Ajouter les imports
+	const componentsPath = parseEnvData.aliases?.components || 'src/components';
+	const relativeComponentsPath = path
+		.relative(path.dirname(indexPath), path.join(process.cwd(), componentsPath))
+		.replace(/\\/g, '/');
+
+	for (const eventFile of eventFiles) {
+		// Vérifier si l'import existe déjà
+		const existingImport = sourceFile
+			.getImportDeclarations()
+			.find(imp => imp.getModuleSpecifierValue().includes(eventFile));
+
+		if (!existingImport) {
+			if (parseEnvData.ts) {
+				// TypeScript: import destructuré
+				const namedImports = eventFile.includes('Handler')
+					? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
+					: [eventFile];
+
+				sourceFile.addImportDeclaration({
+					moduleSpecifier: `${relativeComponentsPath}/${eventFile}`,
+					namedImports: namedImports,
+				});
+			} else {
+				// JavaScript: require destructuré
+				const namedImports = eventFile.includes('Handler')
+					? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
+					: [eventFile];
+
+				sourceFile.addStatements(
+					`const { ${namedImports.join(
+						', ',
+					)} } = require('${relativeComponentsPath}/${eventFile}');`,
+				);
+			}
+		}
+	}
+
+	// Trouver où ajouter les appels de handlers (avant client.login)
+	const clientLogin = sourceFile
+		.getDescendantsOfKind(SyntaxKind.CallExpression)
+		.find(call => {
+			const expression = call.getExpression();
+			return (
+				expression.getKind() === SyntaxKind.PropertyAccessExpression &&
+				expression.getText().includes('client.login')
+			);
+		});
+
+	if (clientLogin) {
+		const statement = clientLogin.getFirstAncestorByKind(
+			SyntaxKind.ExpressionStatement,
+		);
+		if (statement) {
+			// Ajouter les appels de handlers avant client.login()
+			const statementsToAdd: string[] = [];
+
+			for (const eventFile of eventFiles) {
+				const handlerCall = `${eventFile}(client);`;
+				const modalHandlerCall = eventFile.includes('Handler')
+					? `handle${eventFile.replace('CommandHandler', '')}Modal(client);`
+					: null;
+
+				// Vérifier si l'appel existe déjà
+				const existingCall = sourceFile.getFullText().includes(handlerCall);
+				if (!existingCall) {
+					statementsToAdd.push(handlerCall);
+					if (modalHandlerCall) {
+						statementsToAdd.push(modalHandlerCall);
+					}
+				}
+			}
+
+			// Insérer les statements avant client.login()
+			if (statementsToAdd.length > 0) {
+				const statementIndex = sourceFile.getStatements().indexOf(statement);
+				sourceFile.insertStatements(statementIndex, statementsToAdd);
+			}
+		}
+	}
+
+	// Sauvegarder les modifications
+	await sourceFile.save();
+	console.log(`📝 Updated: ${path.relative(process.cwd(), indexPath)}`);
 }
 
 function copyFileWithAliases(sourcePath: string, targetPath: string) {

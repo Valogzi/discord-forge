@@ -129,5 +129,4 @@ function handleBanModal(client) {
 	});
 }
 
-module.exports = BanCommandHandler;
-module.exports.handleBanModal = handleBanModal;
+module.exports = { BanCommandHandler, handleBanModal };
