@@ -8,7 +8,7 @@ const inquirer_1 = __importDefault(require("inquirer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const ts_morph_1 = require("ts-morph");
-const AVAILABLE_FEATURES = ['ban'];
+const AVAILABLE_FEATURES = ['ban', 'kick'];
 async function handleAddCommand(feature) {
     let selectedFeature = feature;
     if (!feature) {

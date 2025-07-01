@@ -7,7 +7,7 @@
 		"ts-morph": "^26.0.0"
 	},
 	"name": "create-discord-forge",
-	"version": "1.0.14",
+	"version": "1.0.15",
 	"main": "dist/main.js",
 	"scripts": {
 		"dev": "ts-node src/main.ts",
@@ -19,6 +19,18 @@
 	"bin": {
 		"create-discord-forge": "dist/main.js"
 	},
+	"keywords": [
+		"discord",
+		"forge",
+		"cli",
+		"bot",
+		"discord-bot",
+		"discord-cli",
+		"discord-forge",
+		"discord-forge-cli",
+		"discord-forge-cli-tool",
+		"discord-forge-cli-toolkit"
+	],
 	"files": [
 		"dist",
 		"templates",

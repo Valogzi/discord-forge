@@ -1,0 +1,18 @@
+{
+	"ts": {
+		"copy": [
+			{
+				"from": "files/commands/kick.ts",
+				"to": "src/commands/admin/kick.ts"
+			}
+		]
+	},
+	"js": {
+		"copy": [
+			{
+				"from": "files/commands/kick.js",
+				"to": "src/commands/admin/kick.js"
+			}
+		]
+	}
+}

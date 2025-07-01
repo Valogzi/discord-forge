@@ -9,15 +9,15 @@ const {
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('ban')
-		.setDescription('Ban a user from the server')
+		.setName('kick')
+		.setDescription('Kick a user from the server')
 		.addUserOption(option =>
 			option
 				.setName('user')
 				.setDescription('The user to ban')
 				.setRequired(true),
 		)
-		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
 
 	async execute(interaction) {
 		const user = interaction.options.getUser('user');
@@ -28,17 +28,17 @@ module.exports = {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('🚫 Ban command')
-			.setDescription(`Are you sure to ban ${user.tag} ?`);
+			.setColor('#FFBC00')
+			.setTitle('🔄️ Kick command')
+			.setDescription(`Are you sure to kick ${user.tag} ?`);
 
 		const confirmButton = new ButtonBuilder()
-			.setCustomId(`ban_button::${user.id}`)
-			.setLabel(`Confirm Ban`)
+			.setCustomId(`kick_button::${user.id}`)
+			.setLabel(`Confirm Kick`)
 			.setStyle(ButtonStyle.Danger);
 
 		const cancelButton = new ButtonBuilder()
-			.setCustomId('cancel_ban_button')
+			.setCustomId('cancel_kick_button')
 			.setLabel('Cancel')
 			.setStyle(ButtonStyle.Secondary);
 

@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { Project, SyntaxKind } from 'ts-morph';
 
-const AVAILABLE_FEATURES = ['ban'];
+const AVAILABLE_FEATURES = ['ban', 'kick'];
 
 export async function handleAddCommand(feature?: string) {
 	let selectedFeature = feature!;
