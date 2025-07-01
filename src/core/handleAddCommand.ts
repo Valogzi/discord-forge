@@ -8,7 +8,7 @@ const AVAILABLE_FEATURES = ['ban', 'kick'];
 export async function handleAddCommand(features?: string | string[]) {
 	let selectedFeatures: string[] = [];
 
-	if (!features) {
+	if (!features || (Array.isArray(features) && features.length === 0)) {
 		const { chosen } = await inquirer.prompt([
 			{
 				name: 'chosen',

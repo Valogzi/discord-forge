@@ -11,7 +11,7 @@ const ts_morph_1 = require("ts-morph");
 const AVAILABLE_FEATURES = ['ban', 'kick'];
 async function handleAddCommand(features) {
     let selectedFeatures = [];
-    if (!features) {
+    if (!features || (Array.isArray(features) && features.length === 0)) {
         const { chosen } = await inquirer_1.default.prompt([
             {
                 name: 'chosen',
