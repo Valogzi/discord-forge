@@ -1,5 +1,7 @@
 {
 	"name": "kick",
+	"type": "command",
+	"ranking": "admin",
 	"description": "Advenced kick command",
 	"compatibleTemplates": ["ts", "js"]
 }

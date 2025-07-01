@@ -1,5 +1,7 @@
 {
 	"name": "ban",
+	"type": "command",
+	"ranking": "admin",
 	"description": "Advenced ban command",
 	"compatibleTemplates": ["ts", "js"]
 }

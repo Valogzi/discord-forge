@@ -57,6 +57,7 @@ async function installFeature(name: string) {
 			aliases: {
 				index: `src/index.${hasTypeScript ? 'ts' : 'js'}`,
 				components: 'src/components',
+				commands: 'src/commands',
 			},
 		};
 
@@ -95,8 +96,10 @@ async function installFeature(name: string) {
 
 	// Copier les fichiers selon les règles d'injection
 	const copyRules = injectData[projectType].copy;
-	const sourceBasePath = templatePath;
 	const targetBasePath = process.cwd();
+
+	const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
+	const subFolder = metadata.ranking;
 
 	// D'abord, copier automatiquement tous les fichiers events vers components
 	const eventsPath = path.join(templatePath, 'files', 'events');
@@ -111,7 +114,13 @@ async function installFeature(name: string) {
 			// Utiliser l'alias components pour déterminer le chemin de destination
 			const componentsPath =
 				parseEnvData.aliases?.components || 'src/components';
-			const targetPath = path.join(targetBasePath, componentsPath, eventFile);
+
+			const targetPath = path.join(
+				targetBasePath,
+				componentsPath,
+				subFolder,
+				eventFile,
+			);
 
 			copyFileWithAliases(sourcePath, targetPath);
 		}
@@ -119,8 +128,14 @@ async function installFeature(name: string) {
 
 	// Ensuite, copier les fichiers selon les règles explicites d'inject.json
 	for (const rule of copyRules) {
-		const sourcePath = path.join(sourceBasePath, rule.from);
-		const targetPath = path.join(targetBasePath, rule.to);
+		const sourcePath = path.join(templatePath, rule.from);
+		const targetSourcePath = parseEnvData.aliases?.commands || 'src/commands';
+		const targetPath = path.join(
+			targetBasePath,
+			targetSourcePath,
+			subFolder,
+			rule.to,
+		);
 
 		if (!fs.existsSync(sourcePath)) {
 			console.warn(`⚠️ Source file not found: ${rule.from}`);

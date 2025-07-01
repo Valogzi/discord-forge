@@ -55,3 +55,18 @@ pnpx create-discord-forge@latest add [components]
 # or
 pnpm dlx create-discord-forge@latest add [components]
 ```
+
+## Custom components Installation
+
+You can customize the paths where the files will be copied with components.json
+
+```json
+{
+	"ts": true, // --> typeScript project
+	"aliases": {
+		"index": "src/index.ts", // --> index relative path
+		"components": "src/components", // --> components events folder
+		"commands": "src/commands" // --> your commands folder
+	}
+}
+```

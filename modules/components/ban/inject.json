@@ -3,7 +3,7 @@
 		"copy": [
 			{
 				"from": "files/commands/ban.ts",
-				"to": "src/commands/admin/ban.ts"
+				"to": "ban.ts"
 			}
 		]
 	},
@@ -11,7 +11,7 @@
 		"copy": [
 			{
 				"from": "files/commands/ban.js",
-				"to": "src/commands/admin/ban.js"
+				"to": "ban.js"
 			}
 		]
 	}

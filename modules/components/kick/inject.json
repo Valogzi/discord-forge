@@ -3,7 +3,7 @@
 		"copy": [
 			{
 				"from": "files/commands/kick.ts",
-				"to": "src/commands/admin/kick.ts"
+				"to": "kick.ts"
 			}
 		]
 	},
@@ -11,7 +11,7 @@
 		"copy": [
 			{
 				"from": "files/commands/kick.js",
-				"to": "src/commands/admin/kick.js"
+				"to": "kick.js"
 			}
 		]
 	}

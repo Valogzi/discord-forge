@@ -50,6 +50,7 @@ async function installFeature(name) {
             aliases: {
                 index: `src/index.${hasTypeScript ? 'ts' : 'js'}`,
                 components: 'src/components',
+                commands: 'src/commands',
             },
         };
         console.log(`📋 Detected project type: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`);
@@ -76,8 +77,9 @@ async function installFeature(name) {
     }
     // Copier les fichiers selon les règles d'injection
     const copyRules = injectData[projectType].copy;
-    const sourceBasePath = templatePath;
     const targetBasePath = process.cwd();
+    const metadata = JSON.parse(fs_1.default.readFileSync(metadataPath, 'utf-8'));
+    const subFolder = metadata.ranking;
     // D'abord, copier automatiquement tous les fichiers events vers components
     const eventsPath = path_1.default.join(templatePath, 'files', 'events');
     if (fs_1.default.existsSync(eventsPath)) {
@@ -88,14 +90,15 @@ async function installFeature(name) {
             const sourcePath = path_1.default.join(eventsPath, eventFile);
             // Utiliser l'alias components pour déterminer le chemin de destination
             const componentsPath = parseEnvData.aliases?.components || 'src/components';
-            const targetPath = path_1.default.join(targetBasePath, componentsPath, eventFile);
+            const targetPath = path_1.default.join(targetBasePath, componentsPath, subFolder, eventFile);
             copyFileWithAliases(sourcePath, targetPath);
         }
     }
     // Ensuite, copier les fichiers selon les règles explicites d'inject.json
     for (const rule of copyRules) {
-        const sourcePath = path_1.default.join(sourceBasePath, rule.from);
-        const targetPath = path_1.default.join(targetBasePath, rule.to);
+        const sourcePath = path_1.default.join(templatePath, rule.from);
+        const targetSourcePath = parseEnvData.aliases?.commands || 'src/commands';
+        const targetPath = path_1.default.join(targetBasePath, targetSourcePath, subFolder, rule.to);
         if (!fs_1.default.existsSync(sourcePath)) {
             console.warn(`⚠️ Source file not found: ${rule.from}`);
             continue;
