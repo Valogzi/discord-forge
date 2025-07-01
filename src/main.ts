@@ -16,10 +16,10 @@ program
 
 program
 	.command('add')
-	.description('Add a new feature to your bot')
-	.argument('[feature]', 'Feature to add')
-	.action(feature => {
-		handleAddCommand(feature);
+	.description('Add new features to your bot')
+	.argument('[features...]', 'Features to add (e.g., ban kick)')
+	.action(features => {
+		handleAddCommand(features);
 	});
 
 program.parse();

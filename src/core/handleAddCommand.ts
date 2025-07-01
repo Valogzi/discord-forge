@@ -5,10 +5,10 @@ import { Project, SyntaxKind } from 'ts-morph';
 
 const AVAILABLE_FEATURES = ['ban', 'kick'];
 
-export async function handleAddCommand(feature?: string) {
-	let selectedFeature = feature!;
+export async function handleAddCommand(features?: string | string[]) {
+	let selectedFeatures: string[] = [];
 
-	if (!feature) {
+	if (!features) {
 		const { chosen } = await inquirer.prompt([
 			{
 				name: 'chosen',
@@ -17,18 +17,20 @@ export async function handleAddCommand(feature?: string) {
 				choices: AVAILABLE_FEATURES,
 			},
 		]);
-		for (const feat of chosen) {
-			await installFeature(feat);
+		selectedFeatures = chosen;
+	} else {
+		// Si c'est un string, le mettre dans un array, sinon utiliser l'array tel quel
+		selectedFeatures = Array.isArray(features) ? features : [features];
+	}
+
+	for (const feat of selectedFeatures) {
+		if (!AVAILABLE_FEATURES.includes(feat)) {
+			console.error(`❌ Unknown feature: ${feat}`);
+			continue; // Continue avec les autres features au lieu de return
 		}
-		return;
-	}
 
-	if (!AVAILABLE_FEATURES.includes(selectedFeature)) {
-		console.error(`❌ Unknown feature: ${selectedFeature}`);
-		return;
+		await installFeature(feat);
 	}
-
-	await installFeature(selectedFeature);
 }
 
 async function installFeature(name: string) {
@@ -113,15 +115,13 @@ async function installFeature(name: string) {
 		: 0;
 	const totalFiles = copyRules.length + eventsCount;
 
-	// Ajouter les handlers dans l'index du projet
-	await addHandlersToIndex(name, parseEnvData, templatePath);
-
 	console.log(
 		`✅ Installed feature "${name}" (${
 			parseEnvData.ts ? 'TypeScript' : 'JavaScript'
 		}) - ${totalFiles} files copied`,
 	);
 
+	// Ajouter les handlers dans l'index du projet
 	await addHandlersToIndex(name, parseEnvData, templatePath);
 }
 

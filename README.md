@@ -30,6 +30,39 @@ or
   pnpm dlx create-discord-forge@latest
 ```
 
+## Add feature to project
+
+You can add many independent components with the CLI, make sure you run the CLI with the latest version so you don't miss new components
+
+---
+
+### Available components
+
+- Ban
+- Kick
+
+### How to install
+
+[Components] is an optional argument
+
+with npm
+
+```bash
+  npx create-discord-forge@latest add [components]
+```
+
+with pnpm
+
+```bash
+  pnpx create-discord-forge@latest add [components]
+```
+
+or
+
+```bash
+  pnpm dlx create-discord-forge@latest add [components]
+```
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
