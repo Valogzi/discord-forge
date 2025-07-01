@@ -15,9 +15,9 @@ program
     .action(mainAction_1.default);
 program
     .command('add')
-    .description('Add a new feature to your bot')
-    .argument('[feature]', 'Feature to add')
-    .action(feature => {
-    (0, handleAddCommand_1.handleAddCommand)(feature);
+    .description('Add new features to your bot')
+    .argument('[features...]', 'Features to add (e.g., ban kick)')
+    .action(features => {
+    (0, handleAddCommand_1.handleAddCommand)(features);
 });
 program.parse();
