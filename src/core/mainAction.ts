@@ -19,7 +19,7 @@ const mainAction = async () => {
 			type: 'select',
 			name: 'TEMPLATE',
 			message: 'Select a template:',
-			choices: [{ name: '📦 >> default', value: 'default' }],
+			choices: [{ name: 'Default', value: 'default' }],
 		},
 		{
 			type: 'confirm',
@@ -40,8 +40,8 @@ const mainAction = async () => {
 			choices: [
 				{ name: '📦 npm', value: 'npm' },
 				{ name: '🪄  pnpm', value: 'pnpm' },
-				{ name: '🚀  yarn', value: 'yarn' },
-				{ name: '🔧  bun', value: 'bun' },
+				{ name: '🚀 yarn', value: 'yarn' },
+				{ name: '🔧 bun', value: 'bun' },
 			],
 		},
 	]);
