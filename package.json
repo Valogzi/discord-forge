@@ -7,7 +7,7 @@
 		"ts-morph": "^26.0.0"
 	},
 	"name": "create-discord-forge",
-	"version": "1.0.20",
+	"version": "1.0.21",
 	"main": "dist/main.js",
 	"scripts": {
 		"dev": "ts-node src/main.ts",

@@ -36,11 +36,27 @@ async function handleAddCommand(features) {
 }
 async function installFeature(name) {
     const envData = path_1.default.join(process.cwd(), 'components.json');
+    let parseEnvData;
     if (!fs_1.default.existsSync(envData)) {
-        console.error(`❌ components.json not found in current directory`);
-        return;
+        console.log('⚠️ components.json not found, using default configuration');
+        console.log('🔁 Event files will be installed to src/components');
+        // Détecter le type de projet en cherchant des fichiers .ts
+        const hasTypeScript = fs_1.default.existsSync(path_1.default.join(process.cwd(), 'tsconfig.json')) ||
+            fs_1.default.existsSync(path_1.default.join(process.cwd(), 'src', 'index.ts')) ||
+            fs_1.default.existsSync(path_1.default.join(process.cwd(), 'index.ts'));
+        // Configuration par défaut
+        parseEnvData = {
+            ts: hasTypeScript,
+            aliases: {
+                index: `src/index.${hasTypeScript ? 'ts' : 'js'}`,
+                components: 'src/components',
+            },
+        };
+        console.log(`📋 Detected project type: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`);
     }
-    const parseEnvData = JSON.parse(fs_1.default.readFileSync(envData, 'utf-8'));
+    else {
+        parseEnvData = JSON.parse(fs_1.default.readFileSync(envData, 'utf-8'));
+    }
     const templatePath = path_1.default.join(__dirname, '../../modules/components', name);
     const metadataPath = path_1.default.join(templatePath, 'meta.json');
     const injectdataPath = path_1.default.join(templatePath, 'inject.json');
@@ -99,9 +115,8 @@ async function installFeature(name) {
 }
 async function addHandlersToIndex(featureName, parseEnvData, templatePath) {
     const project = new ts_morph_1.Project();
-    const indexPath = parseEnvData.ts
-        ? path_1.default.join(process.cwd(), 'src', 'index.ts')
-        : path_1.default.join(process.cwd(), 'src', 'index.js');
+    const indexAlias = parseEnvData.aliases?.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`;
+    const indexPath = path_1.default.join(process.cwd(), indexAlias);
     if (!fs_1.default.existsSync(indexPath)) {
         console.warn(`⚠️ Index file not found: ${indexPath}`);
         return;

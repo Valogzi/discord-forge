@@ -1,6 +1,7 @@
 {
 	"ts": false,
 	"aliases": {
+		"index": "src/index.js",
 		"components": "src/components"
 	}
 }

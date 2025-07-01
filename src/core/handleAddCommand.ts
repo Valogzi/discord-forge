@@ -36,15 +36,38 @@ export async function handleAddCommand(features?: string | string[]) {
 async function installFeature(name: string) {
 	const envData = path.join(process.cwd(), 'components.json');
 
-	if (!fs.existsSync(envData)) {
-		console.error(`❌ components.json not found in current directory`);
-		return;
-	}
-
-	const parseEnvData: {
+	let parseEnvData: {
 		ts: boolean;
 		aliases: Record<string, string>;
-	} = JSON.parse(fs.readFileSync(envData, 'utf-8'));
+	};
+
+	if (!fs.existsSync(envData)) {
+		console.log('⚠️ components.json not found, using default configuration');
+		console.log('🔁 Event files will be installed to src/components');
+
+		// Détecter le type de projet en cherchant des fichiers .ts
+		const hasTypeScript =
+			fs.existsSync(path.join(process.cwd(), 'tsconfig.json')) ||
+			fs.existsSync(path.join(process.cwd(), 'src', 'index.ts')) ||
+			fs.existsSync(path.join(process.cwd(), 'index.ts'));
+
+		// Configuration par défaut
+		parseEnvData = {
+			ts: hasTypeScript,
+			aliases: {
+				index: `src/index.${hasTypeScript ? 'ts' : 'js'}`,
+				components: 'src/components',
+			},
+		};
+
+		console.log(
+			`📋 Detected project type: ${
+				hasTypeScript ? 'TypeScript' : 'JavaScript'
+			}`,
+		);
+	} else {
+		parseEnvData = JSON.parse(fs.readFileSync(envData, 'utf-8'));
+	}
 
 	const templatePath = path.join(__dirname, '../../modules/components', name);
 	const metadataPath = path.join(templatePath, 'meta.json');
@@ -131,9 +154,9 @@ async function addHandlersToIndex(
 	templatePath: string,
 ) {
 	const project = new Project();
-	const indexPath = parseEnvData.ts
-		? path.join(process.cwd(), 'src', 'index.ts')
-		: path.join(process.cwd(), 'src', 'index.js');
+	const indexAlias =
+		parseEnvData.aliases?.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`;
+	const indexPath = path.join(process.cwd(), indexAlias);
 
 	if (!fs.existsSync(indexPath)) {
 		console.warn(`⚠️ Index file not found: ${indexPath}`);
