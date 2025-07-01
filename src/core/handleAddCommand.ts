@@ -2,6 +2,7 @@ import inquirer from 'inquirer';
 import path from 'path';
 import fs from 'fs';
 import { Project, SyntaxKind } from 'ts-morph';
+import boxen from 'boxen';
 
 const AVAILABLE_FEATURES = ['ban', 'kick'];
 
@@ -25,7 +26,13 @@ export async function handleAddCommand(features?: string | string[]) {
 
 	for (const feat of selectedFeatures) {
 		if (!AVAILABLE_FEATURES.includes(feat)) {
-			console.error(`❌ Unknown feature: ${feat}`);
+			console.error(
+				boxen(`❌ Unknown feature: ${feat}`, {
+					padding: { top: 0, bottom: 0, left: 1, right: 1 },
+					borderStyle: 'single',
+					borderColor: 'red',
+				}),
+			);
 			continue; // Continue avec les autres features au lieu de return
 		}
 
@@ -42,8 +49,16 @@ async function installFeature(name: string) {
 	};
 
 	if (!fs.existsSync(envData)) {
-		console.log('⚠️ components.json not found, using default configuration');
-		console.log('🔁 Event files will be installed to src/components');
+		console.log(
+			boxen(
+				'⚠️ components.json not found, using default configuration\n🔁 Event files will be installed to src/components',
+				{
+					padding: 1,
+					borderStyle: 'round',
+					borderColor: 'yellow',
+				},
+			),
+		);
 
 		// Détecter le type de projet en cherchant des fichiers .ts
 		const hasTypeScript =
@@ -62,9 +77,16 @@ async function installFeature(name: string) {
 		};
 
 		console.log(
-			`📋 Detected project type: ${
-				hasTypeScript ? 'TypeScript' : 'JavaScript'
-			}`,
+			boxen(
+				`📋 Detected project type: ${
+					hasTypeScript ? 'TypeScript' : 'JavaScript'
+				}`,
+				{
+					padding: { top: 0, bottom: 0, left: 1, right: 1 },
+					borderStyle: 'single',
+					borderColor: 'cyan',
+				},
+			),
 		);
 	} else {
 		parseEnvData = JSON.parse(fs.readFileSync(envData, 'utf-8'));
@@ -154,9 +176,17 @@ async function installFeature(name: string) {
 	const totalFiles = copyRules.length + eventsCount;
 
 	console.log(
-		`✅ Installed feature "${name}" (${
-			parseEnvData.ts ? 'TypeScript' : 'JavaScript'
-		}) - ${totalFiles} files copied`,
+		boxen(
+			`✅ Installed feature "${name}" (${
+				parseEnvData.ts ? 'TypeScript' : 'JavaScript'
+			}) - ${totalFiles} files copied`,
+			{
+				padding: 1,
+				borderStyle: 'round',
+				borderColor: 'green',
+				textAlignment: 'center',
+			},
+		),
 	);
 
 	// Ajouter les handlers dans l'index du projet
@@ -286,7 +316,13 @@ async function addHandlersToIndex(
 
 	// Sauvegarder les modifications
 	await sourceFile.save();
-	console.log(`📝 Updated: ${path.relative(process.cwd(), indexPath)}`);
+	console.log(
+		boxen(`📝 Updated: ${path.relative(process.cwd(), indexPath)}`, {
+			padding: { top: 0, bottom: 0, left: 1, right: 1 },
+			borderStyle: 'single',
+			borderColor: 'blue',
+		}),
+	);
 }
 
 function copyFileWithAliases(sourcePath: string, targetPath: string) {

@@ -4,9 +4,39 @@ import path from 'path';
 
 import { exec, execSync } from 'child_process';
 
+import { say } from 'cfonts';
+import boxen from 'boxen';
+
 const defaultProjectName = path.basename(process.cwd());
 
 const mainAction = async () => {
+	const author = 'Author: Valogzi';
+	const github = 'GitHub: https://github.com/valogzi';
+	const description =
+		'🚀 Welcome to Discord Forge CLI to easily configure Discordjs bot template ';
+
+	const message = `${description}\n\n${author}\n${github}`;
+
+	say('Discord forge', {
+		font: 'block', // Utilise la police en blocs
+		align: 'left', // Alignement à gauche pour un look plus proche de l'image
+		colors: ['system'], // Utilise les couleurs du système par défaut
+		background: 'transparent',
+		letterSpacing: 1,
+		lineHeight: 1,
+		space: true,
+		gradient: ['#6471ff', '#2871EE'], // Dégradé de bleu à rose
+		independentGradient: true, // Applique le dégradé sur chaque lettre
+		transitionGradient: true, // Crée une transition douce entre les couleurs du dégradé
+	});
+	console.log(
+		boxen(message, {
+			padding: 1,
+			borderStyle: 'round',
+			borderColor: 'blue',
+		}) + '\n\n',
+	);
+
 	const answers = inquirer.prompt([
 		{
 			type: 'input',
@@ -53,7 +83,13 @@ const mainAction = async () => {
 		__dirname,
 		`../../templates/${TEMPLATE}/${isTs}`,
 	);
-	console.log(`📂 Using template: ${templatePath}`);
+	console.log(
+		boxen(`📂 Using template: ${templatePath}`, {
+			padding: { top: 0, bottom: 0, left: 1, right: 1 },
+			borderStyle: 'round',
+			borderColor: 'cyan',
+		}),
+	);
 	const targetPath = path.join(
 		process.cwd(),
 		PROJECT_NAME == '.' ? '' : PROJECT_NAME,
@@ -61,34 +97,79 @@ const mainAction = async () => {
 
 	if (PROJECT_NAME !== '.') {
 		if (fs.existsSync(targetPath)) {
-			console.error(`❌ The folder "${PROJECT_NAME}" already exist.`);
+			console.error(
+				boxen(`❌ The folder "${PROJECT_NAME}" already exist.`, {
+					padding: 1,
+					borderStyle: 'double',
+					borderColor: 'red',
+				}),
+			);
 			process.exit(1);
 		}
 	}
 
 	fs.cpSync(templatePath, targetPath, { recursive: true });
 	console.log(
-		`✅ The "${PROJECT_NAME}" project has been successfully created !`,
+		boxen(`✅ The "${PROJECT_NAME}" project has been successfully created !`, {
+			padding: 1,
+			borderStyle: 'round',
+			borderColor: 'green',
+			textAlignment: 'center',
+		}),
 	);
 
 	if (installDeps) {
 		try {
-			console.log('-----------------------------------------------');
+			console.log(
+				boxen('🔄 Installing dependencies...', {
+					padding: { top: 0, bottom: 0, left: 2, right: 2 },
+					borderStyle: 'single',
+					borderColor: 'yellow',
+					textAlignment: 'center',
+				}),
+			);
 			execSync(`cd ${PROJECT_NAME} && ${bin} install`, { stdio: 'inherit' });
-			console.log('-----------------------------------------------');
+			console.log(
+				boxen('📦 Dependencies installed successfully!', {
+					padding: 1,
+					borderStyle: 'round',
+					borderColor: 'green',
+				}),
+			);
 
-			if (TYPESCRIPT)
-				console.log('🔧 Installed developpement TypeScript dependencies...');
-
-			console.log('📦 Installed dependencies.');
+			if (TYPESCRIPT) {
+				console.log(
+					boxen('🔧 TypeScript development environment ready!', {
+						padding: { top: 0, bottom: 0, left: 1, right: 1 },
+						borderStyle: 'single',
+						borderColor: 'blue',
+					}),
+				);
+			}
 		} catch (e) {
 			console.log(
-				`⚠️ Automatic installation failed. Run "${bin} install" manually.`,
+				boxen(
+					`⚠️ Automatic installation failed. Run "${bin} install" manually.`,
+					{
+						padding: 1,
+						borderStyle: 'double',
+						borderColor: 'yellow',
+					},
+				),
 			);
 		}
 	}
 
-	console.log(`🚀 Ready! Go to "${PROJECT_NAME}" and launch your bot.`);
+	console.log(
+		boxen(`🚀 Ready! Go to "${PROJECT_NAME}" and launch your bot.`, {
+			padding: 1,
+			borderStyle: 'double',
+			borderColor: 'magenta',
+			textAlignment: 'center',
+			title: '🎉 SUCCESS',
+			titleAlignment: 'center',
+		}),
+	);
 };
 
 export default mainAction;

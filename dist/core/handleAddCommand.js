@@ -8,6 +8,7 @@ const inquirer_1 = __importDefault(require("inquirer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const ts_morph_1 = require("ts-morph");
+const boxen_1 = __importDefault(require("boxen"));
 const AVAILABLE_FEATURES = ['ban', 'kick'];
 async function handleAddCommand(features) {
     let selectedFeatures = [];
@@ -28,7 +29,11 @@ async function handleAddCommand(features) {
     }
     for (const feat of selectedFeatures) {
         if (!AVAILABLE_FEATURES.includes(feat)) {
-            console.error(`❌ Unknown feature: ${feat}`);
+            console.error((0, boxen_1.default)(`❌ Unknown feature: ${feat}`, {
+                padding: { top: 0, bottom: 0, left: 1, right: 1 },
+                borderStyle: 'single',
+                borderColor: 'red',
+            }));
             continue; // Continue avec les autres features au lieu de return
         }
         await installFeature(feat);
@@ -38,8 +43,11 @@ async function installFeature(name) {
     const envData = path_1.default.join(process.cwd(), 'components.json');
     let parseEnvData;
     if (!fs_1.default.existsSync(envData)) {
-        console.log('⚠️ components.json not found, using default configuration');
-        console.log('🔁 Event files will be installed to src/components');
+        console.log((0, boxen_1.default)('⚠️ components.json not found, using default configuration\n🔁 Event files will be installed to src/components', {
+            padding: 1,
+            borderStyle: 'round',
+            borderColor: 'yellow',
+        }));
         // Détecter le type de projet en cherchant des fichiers .ts
         const hasTypeScript = fs_1.default.existsSync(path_1.default.join(process.cwd(), 'tsconfig.json')) ||
             fs_1.default.existsSync(path_1.default.join(process.cwd(), 'src', 'index.ts')) ||
@@ -53,7 +61,11 @@ async function installFeature(name) {
                 commands: 'src/commands',
             },
         };
-        console.log(`📋 Detected project type: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`);
+        console.log((0, boxen_1.default)(`📋 Detected project type: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`, {
+            padding: { top: 0, bottom: 0, left: 1, right: 1 },
+            borderStyle: 'single',
+            borderColor: 'cyan',
+        }));
     }
     else {
         parseEnvData = JSON.parse(fs_1.default.readFileSync(envData, 'utf-8'));
@@ -112,7 +124,12 @@ async function installFeature(name) {
             .filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js')).length
         : 0;
     const totalFiles = copyRules.length + eventsCount;
-    console.log(`✅ Installed feature "${name}" (${parseEnvData.ts ? 'TypeScript' : 'JavaScript'}) - ${totalFiles} files copied`);
+    console.log((0, boxen_1.default)(`✅ Installed feature "${name}" (${parseEnvData.ts ? 'TypeScript' : 'JavaScript'}) - ${totalFiles} files copied`, {
+        padding: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+        textAlignment: 'center',
+    }));
     // Ajouter les handlers dans l'index du projet
     await addHandlersToIndex(name, parseEnvData, templatePath, subFolder);
 }
@@ -206,7 +223,11 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
     }
     // Sauvegarder les modifications
     await sourceFile.save();
-    console.log(`📝 Updated: ${path_1.default.relative(process.cwd(), indexPath)}`);
+    console.log((0, boxen_1.default)(`📝 Updated: ${path_1.default.relative(process.cwd(), indexPath)}`, {
+        padding: { top: 0, bottom: 0, left: 1, right: 1 },
+        borderStyle: 'single',
+        borderColor: 'blue',
+    }));
 }
 function copyFileWithAliases(sourcePath, targetPath) {
     // Créer le dossier parent si nécessaire
