@@ -114,9 +114,9 @@ async function installFeature(name) {
     const totalFiles = copyRules.length + eventsCount;
     console.log(`✅ Installed feature "${name}" (${parseEnvData.ts ? 'TypeScript' : 'JavaScript'}) - ${totalFiles} files copied`);
     // Ajouter les handlers dans l'index du projet
-    await addHandlersToIndex(name, parseEnvData, templatePath);
+    await addHandlersToIndex(name, parseEnvData, templatePath, subFolder);
 }
-async function addHandlersToIndex(featureName, parseEnvData, templatePath) {
+async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFolder) {
     const project = new ts_morph_1.Project();
     const indexAlias = parseEnvData.aliases?.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`;
     const indexPath = path_1.default.join(process.cwd(), indexAlias);
@@ -137,7 +137,7 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath) {
         .map(file => path_1.default.basename(file, path_1.default.extname(file)));
     // Ajouter les imports
     const componentsPath = parseEnvData.aliases?.components || 'src/components';
-    const fullComponentsPath = path_1.default.join(process.cwd(), componentsPath);
+    const fullComponentsPath = path_1.default.join(process.cwd(), componentsPath, subFolder);
     let relativeComponentsPath = path_1.default
         .relative(path_1.default.dirname(indexPath), fullComponentsPath)
         .replace(/\\/g, '/');

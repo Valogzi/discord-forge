@@ -160,13 +160,14 @@ async function installFeature(name: string) {
 	);
 
 	// Ajouter les handlers dans l'index du projet
-	await addHandlersToIndex(name, parseEnvData, templatePath);
+	await addHandlersToIndex(name, parseEnvData, templatePath, subFolder);
 }
 
 async function addHandlersToIndex(
 	featureName: string,
 	parseEnvData: { ts: boolean; aliases: Record<string, string> },
 	templatePath: string,
+	subFolder: string,
 ) {
 	const project = new Project();
 	const indexAlias =
@@ -194,7 +195,11 @@ async function addHandlersToIndex(
 
 	// Ajouter les imports
 	const componentsPath = parseEnvData.aliases?.components || 'src/components';
-	const fullComponentsPath = path.join(process.cwd(), componentsPath);
+	const fullComponentsPath = path.join(
+		process.cwd(),
+		componentsPath,
+		subFolder,
+	);
 	let relativeComponentsPath = path
 		.relative(path.dirname(indexPath), fullComponentsPath)
 		.replace(/\\/g, '/');
