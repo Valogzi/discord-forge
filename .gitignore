@@ -1,4 +1,4 @@
 /node_modules
-/templates/js/node_modules
-/templates/ts/node_modules
+/templates/default/js/node_modules
+/templates/default/ts/node_modules
 /modules/node_modules

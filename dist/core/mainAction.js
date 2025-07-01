@@ -21,10 +21,13 @@ const mainAction = async () => {
             type: 'select',
             name: 'TEMPLATE',
             message: 'Select a template:',
-            choices: [
-                { name: '🔵 TypeScript', value: 'ts' },
-                { name: '🟡 JavaScript', value: 'js' },
-            ],
+            choices: [{ name: '📦 >> default', value: 'default' }],
+        },
+        {
+            type: 'confirm',
+            name: 'TYPESCRIPT',
+            message: 'Do you want to use TypeScript?',
+            default: true,
         },
         {
             type: 'confirm',
@@ -39,11 +42,14 @@ const mainAction = async () => {
             choices: [
                 { name: '📦 npm', value: 'npm' },
                 { name: '🪄  pnpm', value: 'pnpm' },
+                { name: '🚀  yarn', value: 'yarn' },
+                { name: '🔧  bun', value: 'bun' },
             ],
         },
     ]);
-    const { PROJECT_NAME, TEMPLATE, installDeps, bin } = await answers;
-    const templatePath = path_1.default.join(__dirname, `../../templates/${TEMPLATE}`);
+    const { PROJECT_NAME, TEMPLATE, TYPESCRIPT, installDeps, bin } = await answers;
+    const isTs = TYPESCRIPT ? 'ts' : 'js';
+    const templatePath = path_1.default.join(__dirname, `../../templates/${TEMPLATE}/${isTs}`);
     console.log(`📂 Using template: ${templatePath}`);
     const targetPath = path_1.default.join(process.cwd(), PROJECT_NAME == '.' ? '' : PROJECT_NAME);
     if (PROJECT_NAME !== '.') {
@@ -59,10 +65,9 @@ const mainAction = async () => {
             console.log('-----------------------------------------------');
             (0, child_process_1.execSync)(`cd ${PROJECT_NAME} && ${bin} install`, { stdio: 'inherit' });
             console.log('-----------------------------------------------');
-            if (TEMPLATE === 'ts')
+            if (TYPESCRIPT)
                 console.log('🔧 Installed developpement TypeScript dependencies...');
             console.log('📦 Installed dependencies.');
-            (0, child_process_1.execSync)(`cd ${PROJECT_NAME}`);
         }
         catch (e) {
             console.log(`⚠️ Automatic installation failed. Run "${bin} install" manually.`);
