@@ -2,6 +2,8 @@
 
 A CLI made with Commander to create a Discord and easily add advanced features to your bot made with discord.js in TypeScript or JavaScript
 
+See the [documentation](https://discord-forge-doc.vercel.app)
+
 ## Authors
 
 - [@valogzi](https://www.github.com/valogzi)
@@ -22,11 +24,7 @@ with pnpm:
 
 ```bash
   pnpx create-discord-forge@latest
-```
-
-or
-
-```bash
+  # or
   pnpm dlx create-discord-forge@latest
 ```
 
@@ -58,11 +56,7 @@ with pnpm
 
 ```bash
   pnpx create-discord-forge@latest add [components]
-```
-
-or
-
-```bash
+  # or
   pnpm dlx create-discord-forge@latest add [components]
 ```
 

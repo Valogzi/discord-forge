@@ -18,16 +18,23 @@ export const ROUTES: EachRoute[] = [
 		noLink: true,
 		items: [
 			{
-				title: 'Ban',
-				href: '/ban',
-			},
-			{
-				title: 'Kick',
-				href: '/kick',
-			},
-			{
-				title: 'Warn',
-				href: '/warn',
+				title: 'Moderation',
+				href: '/moderation',
+				noLink: true,
+				items: [
+					{
+						title: 'Ban',
+						href: '/ban',
+					},
+					{
+						title: 'Kick',
+						href: '/kick',
+					},
+					{
+						title: 'Warn',
+						href: '/warn',
+					},
+				],
 			},
 		],
 	},
