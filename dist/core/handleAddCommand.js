@@ -9,7 +9,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const ts_morph_1 = require("ts-morph");
 const boxen_1 = __importDefault(require("boxen"));
-const AVAILABLE_FEATURES = ['ban', 'kick'];
+const AVAILABLE_FEATURES = ['ban', 'kick', 'warn'];
 async function handleAddCommand(features) {
     let selectedFeatures = [];
     if (!features || (Array.isArray(features) && features.length === 0)) {
