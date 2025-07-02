@@ -199,93 +199,127 @@ async function addHandlersToIndex(
 	subFolder: string,
 ) {
 	const project = new Project();
-	const indexPath = path.join(
-		process.cwd(),
-		parseEnvData.aliases.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`,
-	);
+	const indexAlias =
+		parseEnvData.aliases?.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`;
+	const indexPath = path.join(process.cwd(), indexAlias);
 
 	if (!fs.existsSync(indexPath)) {
-		console.error(
-			boxen(`❌ Index file not found at: ${indexPath}`, {
-				padding: 1,
-				borderStyle: 'single',
-				borderColor: 'red',
-			}),
-		);
+		console.warn(`⚠️ Index file not found: ${indexPath}`);
 		return;
 	}
 
+	// Charger le fichier index
 	const sourceFile = project.addSourceFileAtPath(indexPath);
+
+	// Trouver les fichiers events à importer
 	const eventsPath = path.join(templatePath, 'files', 'events');
-	const eventFiles = fs.existsSync(eventsPath)
-		? fs
-				.readdirSync(eventsPath)
-				.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
-		: [];
+	if (!fs.existsSync(eventsPath)) {
+		return;
+	}
+
+	const eventFiles = fs
+		.readdirSync(eventsPath)
+		.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
+		.map(file => path.basename(file, path.extname(file)));
+
+	// Ajouter les imports
+	const componentsPath = parseEnvData.aliases?.components || 'src/components';
+	const fullComponentsPath = path.join(
+		process.cwd(),
+		componentsPath,
+		subFolder,
+	);
+	let relativeComponentsPath = path
+		.relative(path.dirname(indexPath), fullComponentsPath)
+		.replace(/\\/g, '/');
+
+	// S'assurer que le chemin relatif commence par ./ ou ../
+	if (!relativeComponentsPath.startsWith('.')) {
+		relativeComponentsPath = './' + relativeComponentsPath;
+	}
 
 	for (const eventFile of eventFiles) {
-		const handlerName = path.basename(
-			eventFile,
-			parseEnvData.ts ? '.ts' : '.js',
-		);
-		const importPath = path
-			.join(
-				parseEnvData.aliases.components || 'src/components',
-				subFolder,
-				handlerName,
-			)
-			.replace(/\\/g, '/'); // Normalize for import
-
-		// Check if the import already exists
-		const existingImport = sourceFile.getImportDeclaration(
-			d => d.getModuleSpecifier().getLiteralValue() === importPath,
-		);
+		// Vérifier si l'import existe déjà
+		const existingImport = sourceFile
+			.getImportDeclarations()
+			.find(imp => imp.getModuleSpecifierValue().includes(eventFile));
 
 		if (!existingImport) {
-			sourceFile.addImportDeclaration({
-				moduleSpecifier: importPath,
-				namedImports: [handlerName],
-			});
-		}
+			if (parseEnvData.ts) {
+				// TypeScript: import destructuré
+				const namedImports = eventFile.includes('Handler')
+					? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
+					: [eventFile];
 
-		// Find the client.login() call
-		const callExpressions = sourceFile.getDescendantsOfKind(
-			SyntaxKind.CallExpression,
-		);
-		const loginCall = callExpressions.find(
-			c => c.getExpression().getText() === 'client.login',
-		);
+				sourceFile.addImportDeclaration({
+					moduleSpecifier: `${relativeComponentsPath}/${eventFile}`,
+					namedImports: namedImports,
+				});
+			} else {
+				// JavaScript: require destructuré
+				const namedImports = eventFile.includes('Handler')
+					? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
+					: [eventFile];
 
-		if (loginCall) {
-			const sourceFile = loginCall.getSourceFile();
-			// Check if the handler call already exists
-			const isHandlerCalled = callExpressions.some(
-				c => c.getExpression().getText() === handlerName,
-			);
-
-			if (!isHandlerCalled) {
-				sourceFile.addStatements(`${handlerName}(client);`);
+				sourceFile.addStatements(
+					`const { ${namedImports.join(
+						', ',
+					)} } = require('${relativeComponentsPath}/${eventFile}');`,
+				);
 			}
-		} else {
-			console.warn(
-				boxen(
-					`⚠️ Could not find 'client.login()' in ${indexPath}. Handler '${handlerName}' not added.`,
-					{
-						padding: 1,
-						borderStyle: 'round',
-						borderColor: 'yellow',
-					},
-				),
-			);
 		}
 	}
 
+	// Trouver où ajouter les appels de handlers (avant client.login)
+	const clientLogin = sourceFile
+		.getDescendantsOfKind(SyntaxKind.CallExpression)
+		.find(call => {
+			const expression = call.getExpression();
+			return (
+				expression.getKind() === SyntaxKind.PropertyAccessExpression &&
+				expression.getText().includes('client.login')
+			);
+		});
+
+	if (clientLogin) {
+		const statement = clientLogin.getFirstAncestorByKind(
+			SyntaxKind.ExpressionStatement,
+		);
+		if (statement) {
+			// Ajouter les appels de handlers avant client.login()
+			const statementsToAdd: string[] = [];
+
+			for (const eventFile of eventFiles) {
+				const handlerCall = `${eventFile}(client);`;
+				const modalHandlerCall = eventFile.includes('Handler')
+					? `handle${eventFile.replace('CommandHandler', '')}Modal(client);`
+					: null;
+
+				// Vérifier si l'appel existe déjà
+				const existingCall = sourceFile.getFullText().includes(handlerCall);
+				if (!existingCall) {
+					statementsToAdd.push(handlerCall);
+					if (modalHandlerCall) {
+						statementsToAdd.push(modalHandlerCall);
+					}
+				}
+			}
+
+			// Insérer les statements avant client.login()
+			if (statementsToAdd.length > 0) {
+				const statementIndex = sourceFile.getStatements().indexOf(statement);
+				sourceFile.insertStatements(statementIndex, statementsToAdd);
+			}
+		}
+	}
+
+	// Sauvegarder les modifications
 	await sourceFile.save();
 	console.log(
-		boxen(`✅ Handlers for "${featureName}" added to index.`, {
-			padding: 1,
-			borderStyle: 'round',
-			borderColor: 'green',
+		boxen(`📝 Updated: ${path.relative(process.cwd(), indexPath)}`, {
+			padding: { top: 0, bottom: 0, left: 1, right: 1 },
+			borderStyle: 'single',
+			borderColor: 'blue',
 		}),
 	);
 }
