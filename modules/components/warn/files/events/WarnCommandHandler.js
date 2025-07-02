@@ -1,64 +1,57 @@
-import {
-	Client,
-	ButtonInteraction,
+const {
 	ModalBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 	ActionRowBuilder,
-} from 'discord.js';
+} = require('discord.js');
 
-export function KickCommandHandler(client: Client) {
+function WarnCommandHandler(client) {
 	client.on('interactionCreate', async interaction => {
 		// Check if it's a button interaction
 		if (!interaction.isButton()) return;
 
-		if (interaction.customId === 'cancel_kick_button') {
+		if (interaction.customId === 'cancel_warn_button') {
 			await interaction.reply({
-				content: 'Kick cancelled.',
+				content: 'Warn cancel.',
 				ephemeral: true,
 			});
 			return;
 		}
 
-		// Check if it's the kick button
+		// Check if it's the warn button
 		const [interactionId, userId] = interaction.customId.split('::');
-		if (interaction.customId.startsWith('kick_button::')) {
-			await handleKickButton(interaction, userId);
+		if (interaction.customId.startsWith('warn_button::')) {
+			await handleWarnButton(interaction, userId);
 		}
 	});
 }
 
-async function handleKickButton(
-	interaction: ButtonInteraction,
-	userId: string,
-) {
+async function handleWarnButton(interaction, userId) {
 	if (interaction.replied || interaction.deferred) return;
 
 	try {
 		// Create a modal
 		const modal = new ModalBuilder()
-			.setCustomId(`kick_modal::${userId}`)
-			.setTitle('Kick a user');
+			.setCustomId(`warn_modal::${userId}`)
+			.setTitle('Warn a user');
 
 		const reasonInput = new TextInputBuilder()
-			.setCustomId('kick_reason')
-			.setLabel('Kick reason')
+			.setCustomId('warn_reason')
+			.setLabel('Warning reason')
 			.setStyle(TextInputStyle.Paragraph)
 			.setRequired(false)
 			.setPlaceholder('Server rules violation...')
 			.setMaxLength(512);
 
-		const reasonRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			reasonInput,
-		);
+		const reasonRow = new ActionRowBuilder().addComponents(reasonInput);
 
 		modal.addComponents(reasonRow);
 
-		await interaction.showModal(modal); // ✅ ONLY ONE response
+		await interaction.showModal(modal); // ✅ SINGLE response only
 	} catch (error) {
-		console.error('Error handling kick button:', error);
+		console.error('Error while handling warn button:', error);
 
-		// Do not attempt to reply if already done
+		// Don't attempt to reply if already done
 		if (!interaction.replied && !interaction.deferred) {
 			try {
 				await interaction.reply({
@@ -73,30 +66,30 @@ async function handleKickButton(
 }
 
 // Handler for modal submission
-export function handleKickModal(client: Client) {
+function handleWarnModal(client) {
 	client.on('interactionCreate', async interaction => {
 		// Check if it's a modal submission
 		if (!interaction.isModalSubmit()) return;
 
 		const [interactionId, userId] = interaction.customId.split('::');
-		// Check if it's the kick modal
-		if (interaction.customId.startsWith('kick_modal::')) {
+		// Check if it's the warn modal
+		if (interaction.customId.startsWith('warn_modal::')) {
 			try {
-				// Retrieve modal values
+				// Get modal values
 				const reason =
-					interaction.fields.getTextInputValue('kick_reason') ||
+					interaction.fields.getTextInputValue('warn_reason') ||
 					'No reason specified';
 
 				// Check permissions
-				if (!interaction.memberPermissions?.has('KickMembers')) {
+				if (!interaction.memberPermissions?.has('ModerateMembers')) {
 					await interaction.reply({
-						content: "You don't have permission to kick members.",
+						content: "You don't have permission to warn members.",
 						ephemeral: true,
 					});
 					return;
 				}
 
-				// Attempt to kick the user
+				// Try to warn the user
 				const guild = interaction.guild;
 				if (!guild) {
 					await interaction.reply({
@@ -107,20 +100,26 @@ export function handleKickModal(client: Client) {
 				}
 
 				try {
+					// In a real implementation, you would store the warning in a database
+					// For now, we'll just send a confirmation message
 					const guildMember = await guild.members.fetch(userId);
-					await guildMember.kick(
-						`Kicked by ${interaction.user.tag}: ${reason}`,
-					);
+					const warnEmbed = new EmbedBuilder()
+						.setColor('#FFA500')
+						.setTitle('⚠️ Warning')
+						.setDescription(`You received a warning in **${guild.name}**.`)
+						.addFields({ name: 'Reason', value: reason });
+
+					await guildMember.send({ embeds: [warnEmbed] });
 
 					await interaction.reply({
-						content: `✅ User <@${userId}> kicked successfully.\n**Reason:** ${reason}`,
+						content: `✅ User <@${userId}> warned successfully.\n**Reason:** ${reason}`,
 						ephemeral: true,
 					});
-				} catch (kickError) {
-					console.error('Error during kick:', kickError);
+				} catch (warnError) {
+					console.error('Error while warning:', warnError);
 					await interaction.reply({
 						content:
-							'❌ Unable to kick this user. Check the ID and my permissions.',
+							'❌ Unable to warn this user. Check the ID and my permissions.',
 						ephemeral: true,
 					});
 				}
@@ -137,3 +136,5 @@ export function handleKickModal(client: Client) {
 		}
 	});
 }
+
+module.exports = { WarnCommandHandler, handleWarnModal };

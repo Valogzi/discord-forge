@@ -13,21 +13,21 @@ const mainAction = async () => {
 	const author = 'Author: Valogzi';
 	const github = 'GitHub: https://github.com/valogzi';
 	const description =
-		'🚀 Welcome to Discord Forge CLI to easily configure Discordjs bot template ';
+		'🚀 Welcome to Discord Forge CLI to easily configure Discord.js bot template ';
 
 	const message = `${description}\n\n${author}\n${github}`;
 
 	say('Discord forge', {
-		font: 'block', // Utilise la police en blocs
-		align: 'left', // Alignement à gauche pour un look plus proche de l'image
-		colors: ['system'], // Utilise les couleurs du système par défaut
+		font: 'block', // Use block font
+		align: 'left', // Align to the left for a closer look to the image
+		colors: ['system'], // Use default system colors
 		background: 'transparent',
 		letterSpacing: 1,
 		lineHeight: 1,
 		space: true,
-		gradient: ['#6471ff', '#2871EE'], // Dégradé de bleu à rose
-		independentGradient: true, // Applique le dégradé sur chaque lettre
-		transitionGradient: true, // Crée une transition douce entre les couleurs du dégradé
+		gradient: ['#6471ff', '#2871EE'], // Gradient from blue to pink
+		independentGradient: true, // Apply gradient to each letter
+		transitionGradient: true, // Create a smooth transition between gradient colors
 	});
 	console.log(
 		boxen(message, {
@@ -43,7 +43,7 @@ const mainAction = async () => {
 			name: 'PROJECT_NAME',
 			message: 'Project name:',
 			default: defaultProjectName,
-			validate: input => input.length > 0 || 'Le nom ne peut pas être vide.',
+			validate: input => input.length > 0 || 'The name cannot be empty.',
 		},
 		{
 			type: 'select',
@@ -60,7 +60,7 @@ const mainAction = async () => {
 		{
 			type: 'confirm',
 			name: 'installDeps',
-			message: 'Did you want to install dependencies?',
+			message: 'Do you want to install dependencies?',
 			default: true,
 		},
 		{
@@ -83,6 +83,7 @@ const mainAction = async () => {
 		__dirname,
 		`../../templates/${TEMPLATE}/${isTs}`,
 	);
+	console.log('\n\n');
 	console.log(
 		boxen(`📂 Using template: ${templatePath}`, {
 			padding: { top: 0, bottom: 0, left: 1, right: 1 },
@@ -97,14 +98,17 @@ const mainAction = async () => {
 
 	if (PROJECT_NAME !== '.') {
 		if (fs.existsSync(targetPath)) {
-			console.error(
-				boxen(`❌ The folder "${PROJECT_NAME}" already exist.`, {
-					padding: 1,
-					borderStyle: 'double',
-					borderColor: 'red',
-				}),
+			console.log(
+				boxen(
+					`⚠️ The directory ${targetPath} already exists. Please choose another name.`,
+					{
+						padding: 1,
+						borderStyle: 'round',
+						borderColor: 'yellow',
+					},
+				),
 			);
-			process.exit(1);
+			return;
 		}
 	}
 

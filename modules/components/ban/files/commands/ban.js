@@ -30,11 +30,11 @@ module.exports = {
 		const embed = new EmbedBuilder()
 			.setColor('#FF0000')
 			.setTitle('🚫 Ban command')
-			.setDescription(`Are you sure to ban ${user.tag} ?`);
+			.setDescription(`Are you sure you want to ban ${user.tag}?`);
 
 		const confirmButton = new ButtonBuilder()
 			.setCustomId(`ban_button::${user.id}`)
-			.setLabel(`Confirm Ban`)
+			.setLabel('Confirm Ban')
 			.setStyle(ButtonStyle.Danger);
 
 		const cancelButton = new ButtonBuilder()

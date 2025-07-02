@@ -9,18 +9,18 @@ import {
 
 export function BanCommandHandler(client: Client) {
 	client.on('interactionCreate', async interaction => {
-		// Vérifier si c'est une interaction de bouton
+		// Check if it's a button interaction
 		if (!interaction.isButton()) return;
 
 		if (interaction.customId === 'cancel_ban_button') {
 			await interaction.reply({
-				content: 'Bannissement annulé.',
+				content: 'Ban cancelled.',
 				ephemeral: true,
 			});
 			return;
 		}
 
-		// Vérifier si c'est le bouton de ban
+		// Check if it's the ban button
 		const [interactionId, userId] = interaction.customId.split('::');
 		if (interaction.customId.startsWith('ban_button::')) {
 			await handleBanButton(interaction, userId);
@@ -32,17 +32,17 @@ async function handleBanButton(interaction: ButtonInteraction, userId: string) {
 	if (interaction.replied || interaction.deferred) return;
 
 	try {
-		// Créer un modal
+		// Create a modal
 		const modal = new ModalBuilder()
 			.setCustomId(`ban_modal::${userId}`)
-			.setTitle('Bannir un utilisateur');
+			.setTitle('Ban a user');
 
 		const reasonInput = new TextInputBuilder()
 			.setCustomId('ban_reason')
-			.setLabel('Raison du bannissement')
+			.setLabel('Ban reason')
 			.setStyle(TextInputStyle.Paragraph)
 			.setRequired(false)
-			.setPlaceholder('Violation des règles du serveur...')
+			.setPlaceholder('Server rules violation...')
 			.setMaxLength(512);
 
 		const reasonRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -53,18 +53,17 @@ async function handleBanButton(interaction: ButtonInteraction, userId: string) {
 
 		await interaction.showModal(modal); // ✅ UNE SEULE réponse
 	} catch (error) {
-		console.error('Erreur lors de la gestion du bouton ban:', error);
+		console.error('Error while handling ban button:', error);
 
 		// Ne pas tenter de reply si déjà fait
 		if (!interaction.replied && !interaction.deferred) {
 			try {
 				await interaction.reply({
-					content:
-						'Une erreur est survenue lors du traitement de votre demande.',
+					content: 'An error occurred while processing your request.',
 					ephemeral: true,
 				});
 			} catch (e) {
-				console.error('Erreur lors du reply de fallback:', e);
+				console.error('Error during fallback reply:', e);
 			}
 		}
 	}
@@ -88,7 +87,7 @@ export function handleBanModal(client: Client) {
 				// Vérifier les permissions
 				if (!interaction.memberPermissions?.has('BanMembers')) {
 					await interaction.reply({
-						content: "Vous n'avez pas la permission de bannir des membres.",
+						content: "You don't have permission to ban members.",
 						ephemeral: true,
 					});
 					return;
@@ -98,8 +97,7 @@ export function handleBanModal(client: Client) {
 				const guild = interaction.guild;
 				if (!guild) {
 					await interaction.reply({
-						content:
-							'Cette commande ne peut être utilisée que dans un serveur.',
+						content: 'This command can only be used in a server.',
 						ephemeral: true,
 					});
 					return;
@@ -108,28 +106,27 @@ export function handleBanModal(client: Client) {
 				try {
 					const guildMember = await guild.members.fetch(userId);
 					await guildMember.ban({
-						reason: `Banni par ${interaction.user.tag}: ${reason}`,
+						reason: `Banned by ${interaction.user.tag}: ${reason}`,
 					});
 
 					await interaction.reply({
-						content: `✅ Utilisateur <@${userId}> banni avec succès.\n**Raison:** ${reason}`,
+						content: `✅ User <@${userId}> banned successfully.\n**Reason:** ${reason}`,
 						ephemeral: true,
 					});
 				} catch (banError) {
-					console.error('Erreur lors du bannissement:', banError);
+					console.error('Error while banning:', banError);
 					await interaction.reply({
 						content:
-							"❌ Impossible de bannir cet utilisateur. Vérifiez l'ID et mes permissions.",
+							'❌ Unable to ban this user. Check the ID and my permissions.',
 						ephemeral: true,
 					});
 				}
 			} catch (error) {
-				console.error('Erreur lors de la soumission du modal:', error);
+				console.error('Error while submitting the modal:', error);
 
 				if (!interaction.replied && !interaction.deferred) {
 					await interaction.reply({
-						content:
-							'Une erreur est survenue lors du traitement de votre demande.',
+						content: 'An error occurred while processing your request.',
 						ephemeral: true,
 					});
 				}

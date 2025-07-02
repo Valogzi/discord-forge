@@ -3,20 +3,20 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	EmbedBuilder,
-	SlashCommandBuilder,
 	PermissionFlagsBits,
+	SlashCommandBuilder,
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
-	.setName('ban')
-	.setDescription('Ban a user from the server')
+	.setName('warn')
+	.setDescription('Warn a user')
 	.addUserOption(option =>
-		option.setName('user').setDescription('The user to ban').setRequired(true),
+		option.setName('user').setDescription('The user to warn').setRequired(true),
 	)
-	.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
+	.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages);
 
-export async function execute(interaction: ChatInputCommandInteraction) {
+export const execute = async (interaction: ChatInputCommandInteraction) => {
 	const user = interaction.options.getUser('user');
 
 	if (!user) {
@@ -25,22 +25,22 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 	}
 
 	const embed = new EmbedBuilder()
-		.setColor('#FF0000')
-		.setTitle('🚫 Ban command')
-		.setDescription(`Are you sure you want to ban ${user.tag}?`);
+		.setColor('#FFA500')
+		.setTitle('⚠️ Warn command')
+		.setDescription(`Are you sure to warn ${user.tag}?`);
 
-	const confirmButton = new ButtonBuilder()
-		.setCustomId(`ban_button::${user.id}`)
-		.setLabel('Confirm Ban')
+	const button = new ButtonBuilder()
+		.setCustomId(`warn_button::${user.id}`)
+		.setLabel('Confirm Warn')
 		.setStyle(ButtonStyle.Danger);
 
 	const cancelButton = new ButtonBuilder()
-		.setCustomId('cancel_ban_button')
+		.setCustomId('cancel_warn_button')
 		.setLabel('Cancel')
 		.setStyle(ButtonStyle.Secondary);
 
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		confirmButton,
+		button,
 		cancelButton,
 	);
 
@@ -49,4 +49,4 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		components: [row],
 		ephemeral: true,
 	});
-}
+};

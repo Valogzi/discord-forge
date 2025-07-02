@@ -12,7 +12,7 @@ export const data = new SlashCommandBuilder()
 	.setName('kick')
 	.setDescription('Kick a user from the server')
 	.addUserOption(option =>
-		option.setName('user').setDescription('The user to ban').setRequired(true),
+		option.setName('user').setDescription('The user to kick').setRequired(true),
 	)
 	.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers);
 
@@ -26,12 +26,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 	const embed = new EmbedBuilder()
 		.setColor('#FFBC00')
-		.setTitle('🔄️ Kick command')
-		.setDescription(`Are you sure to kick ${user.tag} ?`);
+		.setTitle('🔄 Kick command')
+		.setDescription(`Are you sure to kick ${user.tag}?`);
 
 	const confirmButton = new ButtonBuilder()
 		.setCustomId(`kick_button::${user.id}`)
-		.setLabel(`Confirm Kick`)
+		.setLabel('Confirm Kick')
 		.setStyle(ButtonStyle.Danger);
 
 	const cancelButton = new ButtonBuilder()

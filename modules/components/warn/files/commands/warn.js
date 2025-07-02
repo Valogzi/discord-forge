@@ -4,21 +4,18 @@ const {
 	ButtonBuilder,
 	ButtonStyle,
 	ActionRowBuilder,
-	PermissionFlagsBits,
 } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('kick')
-		.setDescription('Kick a user from the server')
+		.setName('warn')
+		.setDescription('Warn a user')
 		.addUserOption(option =>
 			option
 				.setName('user')
-				.setDescription('The user to kick')
+				.setDescription('The user to warn')
 				.setRequired(true),
-		)
-		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
-
+		),
 	async execute(interaction) {
 		const user = interaction.options.getUser('user');
 
@@ -28,17 +25,17 @@ module.exports = {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor('#FFBC00')
-			.setTitle('🔄 Kick command')
-			.setDescription(`Are you sure to kick ${user.tag}?`);
+			.setColor('#FFA500')
+			.setTitle('⚠️ Warn command')
+			.setDescription(`Are you sure to warn ${user.tag}?`);
 
 		const confirmButton = new ButtonBuilder()
-			.setCustomId(`kick_button::${user.id}`)
-			.setLabel('Confirm Kick')
-			.setStyle(ButtonStyle.Danger);
+			.setCustomId(`warn_button::${user.id}`)
+			.setLabel(`Confirm Warn`)
+			.setStyle(ButtonStyle.Secondary);
 
 		const cancelButton = new ButtonBuilder()
-			.setCustomId('cancel_kick_button')
+			.setCustomId('cancel_warn_button')
 			.setLabel('Cancel')
 			.setStyle(ButtonStyle.Secondary);
 
@@ -50,7 +47,6 @@ module.exports = {
 		await interaction.reply({
 			embeds: [embed],
 			components: [row],
-			ephemeral: true,
 		});
 	},
 };

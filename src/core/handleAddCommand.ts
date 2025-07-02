@@ -20,7 +20,7 @@ export async function handleAddCommand(features?: string | string[]) {
 		]);
 		selectedFeatures = chosen;
 	} else {
-		// Si c'est un string, le mettre dans un array, sinon utiliser l'array tel quel
+		// If it's a string, put it in an array, otherwise use the array as is
 		selectedFeatures = Array.isArray(features) ? features : [features];
 	}
 
@@ -33,7 +33,7 @@ export async function handleAddCommand(features?: string | string[]) {
 					borderColor: 'red',
 				}),
 			);
-			continue; // Continue avec les autres features au lieu de return
+			continue; // Continue with the other features instead of returning
 		}
 
 		await installFeature(feat);
@@ -60,13 +60,13 @@ async function installFeature(name: string) {
 			),
 		);
 
-		// Détecter le type de projet en cherchant des fichiers .ts
+		// Detect project type by looking for .ts files
 		const hasTypeScript =
 			fs.existsSync(path.join(process.cwd(), 'tsconfig.json')) ||
 			fs.existsSync(path.join(process.cwd(), 'src', 'index.ts')) ||
 			fs.existsSync(path.join(process.cwd(), 'index.ts'));
 
-		// Configuration par défaut
+		// Default configuration
 		parseEnvData = {
 			ts: hasTypeScript,
 			aliases: {
@@ -94,36 +94,22 @@ async function installFeature(name: string) {
 
 	const templatePath = path.join(__dirname, '../../modules/components', name);
 	const metadataPath = path.join(templatePath, 'meta.json');
-	const injectdataPath = path.join(templatePath, 'inject.json');
 
 	if (!fs.existsSync(templatePath)) {
 		console.error(`⚠️ Feature "${name}" is not implemented yet.`);
 		return;
 	}
 
-	if (!fs.existsSync(injectdataPath)) {
-		console.error(`⚠️ inject.json not found for feature "${name}"`);
+	if (!fs.existsSync(metadataPath)) {
+		console.error(`⚠️ meta.json not found for feature "${name}"`);
 		return;
 	}
-
-	const injectData = JSON.parse(fs.readFileSync(injectdataPath, 'utf-8'));
-	const projectType = parseEnvData.ts ? 'ts' : 'js';
-
-	if (!injectData[projectType] || !injectData[projectType].copy) {
-		console.error(
-			`⚠️ No configuration found for ${projectType} in inject.json`,
-		);
-		return;
-	}
-
-	// Copier les fichiers selon les règles d'injection
-	const copyRules = injectData[projectType].copy;
-	const targetBasePath = process.cwd();
 
 	const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
 	const subFolder = metadata.ranking;
+	const targetBasePath = process.cwd();
 
-	// D'abord, copier automatiquement tous les fichiers events vers components
+	// First, automatically copy all event files to components
 	const eventsPath = path.join(templatePath, 'files', 'events');
 	if (fs.existsSync(eventsPath)) {
 		const eventFiles = fs
@@ -133,13 +119,13 @@ async function installFeature(name: string) {
 		for (const eventFile of eventFiles) {
 			const sourcePath = path.join(eventsPath, eventFile);
 
-			// Utiliser l'alias components pour déterminer le chemin de destination
-			const componentsPath =
+			// Use the components alias to determine the destination path
+			const targetSourcePath =
 				parseEnvData.aliases?.components || 'src/components';
 
 			const targetPath = path.join(
 				targetBasePath,
-				componentsPath,
+				targetSourcePath,
 				subFolder,
 				eventFile,
 			);
@@ -148,32 +134,45 @@ async function installFeature(name: string) {
 		}
 	}
 
-	// Ensuite, copier les fichiers selon les règles explicites d'inject.json
-	for (const rule of copyRules) {
-		const sourcePath = path.join(templatePath, rule.from);
-		const targetSourcePath = parseEnvData.aliases?.commands || 'src/commands';
-		const targetPath = path.join(
-			targetBasePath,
-			targetSourcePath,
-			subFolder,
-			rule.to,
-		);
+	const commandsPath = path.join(templatePath, 'files', 'commands');
+	if (fs.existsSync(commandsPath)) {
+		const commandFiles = fs
+			.readdirSync(commandsPath)
+			.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'));
 
-		if (!fs.existsSync(sourcePath)) {
-			console.warn(`⚠️ Source file not found: ${rule.from}`);
-			continue;
+		for (const commandFile of commandFiles) {
+			const sourcePath = path.join(commandsPath, commandFile);
+
+			// Use the commands alias to determine the destination path
+			const targetSourcePath = parseEnvData.aliases?.commands || 'src/commands';
+
+			const targetPath = path.join(
+				targetBasePath,
+				targetSourcePath,
+				subFolder,
+				commandFile,
+			);
+
+			copyFileWithAliases(sourcePath, targetPath);
 		}
-
-		copyFileWithAliases(sourcePath, targetPath);
 	}
 
-	// Compter le total de fichiers copiés
+	// Count the total number of files copied
 	const eventsCount = fs.existsSync(path.join(templatePath, 'files', 'events'))
 		? fs
 				.readdirSync(path.join(templatePath, 'files', 'events'))
 				.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js')).length
 		: 0;
-	const totalFiles = copyRules.length + eventsCount;
+
+	const commandsCount = fs.existsSync(
+		path.join(templatePath, 'files', 'commands'),
+	)
+		? fs
+				.readdirSync(path.join(templatePath, 'files', 'commands'))
+				.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js')).length
+		: 0;
+
+	const totalFiles = eventsCount + commandsCount;
 
 	console.log(
 		boxen(
@@ -189,7 +188,7 @@ async function installFeature(name: string) {
 		),
 	);
 
-	// Ajouter les handlers dans l'index du projet
+	// Add handlers to the project index
 	await addHandlersToIndex(name, parseEnvData, templatePath, subFolder);
 }
 
@@ -200,140 +199,103 @@ async function addHandlersToIndex(
 	subFolder: string,
 ) {
 	const project = new Project();
-	const indexAlias =
-		parseEnvData.aliases?.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`;
-	const indexPath = path.join(process.cwd(), indexAlias);
+	const indexPath = path.join(
+		process.cwd(),
+		parseEnvData.aliases.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`,
+	);
 
 	if (!fs.existsSync(indexPath)) {
-		console.warn(`⚠️ Index file not found: ${indexPath}`);
+		console.error(
+			boxen(`❌ Index file not found at: ${indexPath}`, {
+				padding: 1,
+				borderStyle: 'single',
+				borderColor: 'red',
+			}),
+		);
 		return;
 	}
 
-	// Charger le fichier index
 	const sourceFile = project.addSourceFileAtPath(indexPath);
-
-	// Trouver les fichiers events à importer
 	const eventsPath = path.join(templatePath, 'files', 'events');
-	if (!fs.existsSync(eventsPath)) {
-		return;
-	}
-
-	const eventFiles = fs
-		.readdirSync(eventsPath)
-		.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
-		.map(file => path.basename(file, path.extname(file)));
-
-	// Ajouter les imports
-	const componentsPath = parseEnvData.aliases?.components || 'src/components';
-	const fullComponentsPath = path.join(
-		process.cwd(),
-		componentsPath,
-		subFolder,
-	);
-	let relativeComponentsPath = path
-		.relative(path.dirname(indexPath), fullComponentsPath)
-		.replace(/\\/g, '/');
-
-	// S'assurer que le chemin relatif commence par ./ ou ../
-	if (!relativeComponentsPath.startsWith('.')) {
-		relativeComponentsPath = './' + relativeComponentsPath;
-	}
+	const eventFiles = fs.existsSync(eventsPath)
+		? fs
+				.readdirSync(eventsPath)
+				.filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
+		: [];
 
 	for (const eventFile of eventFiles) {
-		// Vérifier si l'import existe déjà
-		const existingImport = sourceFile
-			.getImportDeclarations()
-			.find(imp => imp.getModuleSpecifierValue().includes(eventFile));
+		const handlerName = path.basename(
+			eventFile,
+			parseEnvData.ts ? '.ts' : '.js',
+		);
+		const importPath = path
+			.join(
+				parseEnvData.aliases.components || 'src/components',
+				subFolder,
+				handlerName,
+			)
+			.replace(/\\/g, '/'); // Normalize for import
+
+		// Check if the import already exists
+		const existingImport = sourceFile.getImportDeclaration(
+			d => d.getModuleSpecifier().getLiteralValue() === importPath,
+		);
 
 		if (!existingImport) {
-			if (parseEnvData.ts) {
-				// TypeScript: import destructuré
-				const namedImports = eventFile.includes('Handler')
-					? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
-					: [eventFile];
-
-				sourceFile.addImportDeclaration({
-					moduleSpecifier: `${relativeComponentsPath}/${eventFile}`,
-					namedImports: namedImports,
-				});
-			} else {
-				// JavaScript: require destructuré
-				const namedImports = eventFile.includes('Handler')
-					? [eventFile, `handle${eventFile.replace('CommandHandler', '')}Modal`]
-					: [eventFile];
-
-				sourceFile.addStatements(
-					`const { ${namedImports.join(
-						', ',
-					)} } = require('${relativeComponentsPath}/${eventFile}');`,
-				);
-			}
+			sourceFile.addImportDeclaration({
+				moduleSpecifier: importPath,
+				namedImports: [handlerName],
+			});
 		}
-	}
 
-	// Trouver où ajouter les appels de handlers (avant client.login)
-	const clientLogin = sourceFile
-		.getDescendantsOfKind(SyntaxKind.CallExpression)
-		.find(call => {
-			const expression = call.getExpression();
-			return (
-				expression.getKind() === SyntaxKind.PropertyAccessExpression &&
-				expression.getText().includes('client.login')
-			);
-		});
-
-	if (clientLogin) {
-		const statement = clientLogin.getFirstAncestorByKind(
-			SyntaxKind.ExpressionStatement,
+		// Find the client.login() call
+		const callExpressions = sourceFile.getDescendantsOfKind(
+			SyntaxKind.CallExpression,
 		);
-		if (statement) {
-			// Ajouter les appels de handlers avant client.login()
-			const statementsToAdd: string[] = [];
+		const loginCall = callExpressions.find(
+			c => c.getExpression().getText() === 'client.login',
+		);
 
-			for (const eventFile of eventFiles) {
-				const handlerCall = `${eventFile}(client);`;
-				const modalHandlerCall = eventFile.includes('Handler')
-					? `handle${eventFile.replace('CommandHandler', '')}Modal(client);`
-					: null;
+		if (loginCall) {
+			const sourceFile = loginCall.getSourceFile();
+			// Check if the handler call already exists
+			const isHandlerCalled = callExpressions.some(
+				c => c.getExpression().getText() === handlerName,
+			);
 
-				// Vérifier si l'appel existe déjà
-				const existingCall = sourceFile.getFullText().includes(handlerCall);
-				if (!existingCall) {
-					statementsToAdd.push(handlerCall);
-					if (modalHandlerCall) {
-						statementsToAdd.push(modalHandlerCall);
-					}
-				}
+			if (!isHandlerCalled) {
+				sourceFile.addStatements(`${handlerName}(client);`);
 			}
-
-			// Insérer les statements avant client.login()
-			if (statementsToAdd.length > 0) {
-				const statementIndex = sourceFile.getStatements().indexOf(statement);
-				sourceFile.insertStatements(statementIndex, statementsToAdd);
-			}
+		} else {
+			console.warn(
+				boxen(
+					`⚠️ Could not find 'client.login()' in ${indexPath}. Handler '${handlerName}' not added.`,
+					{
+						padding: 1,
+						borderStyle: 'round',
+						borderColor: 'yellow',
+					},
+				),
+			);
 		}
 	}
 
-	// Sauvegarder les modifications
 	await sourceFile.save();
 	console.log(
-		boxen(`📝 Updated: ${path.relative(process.cwd(), indexPath)}`, {
-			padding: { top: 0, bottom: 0, left: 1, right: 1 },
-			borderStyle: 'single',
-			borderColor: 'blue',
+		boxen(`✅ Handlers for "${featureName}" added to index.`, {
+			padding: 1,
+			borderStyle: 'round',
+			borderColor: 'green',
 		}),
 	);
 }
 
 function copyFileWithAliases(sourcePath: string, targetPath: string) {
-	// Créer le dossier parent si nécessaire
 	const targetDir = path.dirname(targetPath);
-	fs.mkdirSync(targetDir, { recursive: true });
 
-	// Lire le contenu du fichier source
-	const fileContent = fs.readFileSync(sourcePath, 'utf-8');
+	if (!fs.existsSync(targetDir)) {
+		fs.mkdirSync(targetDir, { recursive: true });
+	}
 
-	// Écrire le fichier (sans modification d'alias dans le contenu)
-	fs.writeFileSync(targetPath, fileContent, 'utf-8');
-	console.log(`📁 Copied: ${path.relative(process.cwd(), targetPath)}`);
+	fs.copyFileSync(sourcePath, targetPath);
 }

@@ -1,7 +1,7 @@
 {
-	"name": "ban",
+	"name": "warn",
 	"type": "command",
 	"ranking": "admin",
-	"description": "Advenced ban command",
+	"description": "Advenced warn command",
 	"compatibleTemplates": ["default"]
 }
