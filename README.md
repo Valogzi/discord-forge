@@ -40,6 +40,7 @@ You can add many independent components with the CLI, make sure you run the CLI 
 
 - Ban
 - Kick
+- Warn
 
 ### How to install
 

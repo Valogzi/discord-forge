@@ -25,6 +25,10 @@ export const ROUTES: EachRoute[] = [
 				title: 'Kick',
 				href: '/kick',
 			},
+			{
+				title: 'Warn',
+				href: '/warn',
+			},
 		],
 	},
 ];
