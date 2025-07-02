@@ -34,15 +34,7 @@ module.exports = {
 			.setLabel(`Confirm Warn`)
 			.setStyle(ButtonStyle.Secondary);
 
-		const cancelButton = new ButtonBuilder()
-			.setCustomId('cancel_warn_button')
-			.setLabel('Cancel')
-			.setStyle(ButtonStyle.Secondary);
-
-		const row = new ActionRowBuilder().addComponents(
-			confirmButton,
-			cancelButton,
-		);
+		const row = new ActionRowBuilder().addComponents(confirmButton);
 
 		await interaction.reply({
 			embeds: [embed],

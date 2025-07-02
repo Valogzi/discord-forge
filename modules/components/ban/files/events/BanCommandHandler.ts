@@ -12,14 +12,6 @@ export function BanCommandHandler(client: Client) {
 		// Check if it's a button interaction
 		if (!interaction.isButton()) return;
 
-		if (interaction.customId === 'cancel_ban_button') {
-			await interaction.reply({
-				content: 'Ban cancelled.',
-				ephemeral: true,
-			});
-			return;
-		}
-
 		// Check if it's the ban button
 		const [interactionId, userId] = interaction.customId.split('::');
 		if (interaction.customId.startsWith('ban_button::')) {

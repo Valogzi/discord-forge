@@ -29,19 +29,13 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 		.setTitle('⚠️ Warn command')
 		.setDescription(`Are you sure to warn ${user.tag}?`);
 
-	const button = new ButtonBuilder()
+	const confirmButton = new ButtonBuilder()
 		.setCustomId(`warn_button::${user.id}`)
 		.setLabel('Confirm Warn')
 		.setStyle(ButtonStyle.Danger);
 
-	const cancelButton = new ButtonBuilder()
-		.setCustomId('cancel_warn_button')
-		.setLabel('Cancel')
-		.setStyle(ButtonStyle.Secondary);
-
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		button,
-		cancelButton,
+		confirmButton,
 	);
 
 	await interaction.reply({

@@ -10,14 +10,6 @@ function WarnCommandHandler(client) {
 		// Check if it's a button interaction
 		if (!interaction.isButton()) return;
 
-		if (interaction.customId === 'cancel_warn_button') {
-			await interaction.reply({
-				content: 'Warn cancel.',
-				ephemeral: true,
-			});
-			return;
-		}
-
 		// Check if it's the warn button
 		const [interactionId, userId] = interaction.customId.split('::');
 		if (interaction.customId.startsWith('warn_button::')) {
@@ -107,7 +99,7 @@ function handleWarnModal(client) {
 						.setColor('#FFA500')
 						.setTitle('⚠️ Warning')
 						.setDescription(`You received a warning in **${guild.name}**.`)
-						.addFields({ name: 'Reason', value: reason });
+						.addFields({ name: 'Reason:', value: reason });
 
 					await guildMember.send({ embeds: [warnEmbed] });
 

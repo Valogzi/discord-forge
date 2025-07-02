@@ -12,14 +12,6 @@ export function KickCommandHandler(client: Client) {
 		// Check if it's a button interaction
 		if (!interaction.isButton()) return;
 
-		if (interaction.customId === 'cancel_kick_button') {
-			await interaction.reply({
-				content: 'Kick cancelled.',
-				ephemeral: true,
-			});
-			return;
-		}
-
 		// Check if it's the kick button
 		const [interactionId, userId] = interaction.customId.split('::');
 		if (interaction.customId.startsWith('kick_button::')) {

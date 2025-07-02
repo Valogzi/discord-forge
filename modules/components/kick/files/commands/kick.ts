@@ -34,14 +34,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		.setLabel('Confirm Kick')
 		.setStyle(ButtonStyle.Danger);
 
-	const cancelButton = new ButtonBuilder()
-		.setCustomId('cancel_kick_button')
-		.setLabel('Cancel')
-		.setStyle(ButtonStyle.Secondary);
-
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
 		confirmButton,
-		cancelButton,
 	);
 
 	await interaction.reply({

@@ -37,15 +37,7 @@ module.exports = {
 			.setLabel('Confirm Kick')
 			.setStyle(ButtonStyle.Danger);
 
-		const cancelButton = new ButtonBuilder()
-			.setCustomId('cancel_kick_button')
-			.setLabel('Cancel')
-			.setStyle(ButtonStyle.Secondary);
-
-		const row = new ActionRowBuilder().addComponents(
-			confirmButton,
-			cancelButton,
-		);
+		const row = new ActionRowBuilder().addComponents(confirmButton);
 
 		await interaction.reply({
 			embeds: [embed],
