@@ -4,7 +4,7 @@ import fs from 'fs';
 import { Project, SyntaxKind } from 'ts-morph';
 import boxen from 'boxen';
 
-const AVAILABLE_FEATURES = ['ban', 'kick'];
+const AVAILABLE_FEATURES = ['ban', 'kick', 'warn'];
 
 export async function handleAddCommand(features?: string | string[]) {
 	let selectedFeatures: string[] = [];
