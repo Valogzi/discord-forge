@@ -27,6 +27,7 @@ async function handleAddCommand(features) {
         // If it's a string, put it in an array, otherwise use the array as is
         selectedFeatures = Array.isArray(features) ? features : [features];
     }
+    console.log('\n\n');
     const mainLoader = (0, ora_1.default)('Validating selected features...').start();
     await new Promise(res => setTimeout(res, 500));
     for (const feat of selectedFeatures) {
@@ -242,6 +243,7 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
     // Sauvegarder les modifications
     await sourceFile.save();
     indexLoader.succeed(`Index file updated: ${path_1.default.relative(process.cwd(), indexPath)}`);
+    return;
 }
 function copyFileWithAliases(sourcePath, targetPath) {
     const targetDir = path_1.default.dirname(targetPath);

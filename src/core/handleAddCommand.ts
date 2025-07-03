@@ -25,6 +25,8 @@ export async function handleAddCommand(features?: string | string[]) {
 		selectedFeatures = Array.isArray(features) ? features : [features];
 	}
 
+	console.log('\n\n');
+
 	const mainLoader = ora('Validating selected features...').start();
 	await new Promise(res => setTimeout(res, 500));
 
@@ -341,6 +343,8 @@ async function addHandlersToIndex(
 	indexLoader.succeed(
 		`Index file updated: ${path.relative(process.cwd(), indexPath)}`,
 	);
+
+	return;
 }
 
 function copyFileWithAliases(sourcePath: string, targetPath: string) {
