@@ -13,6 +13,10 @@ export const ROUTES: EachRoute[] = [
 		href: '/installation',
 	},
 	{
+		title: 'References',
+		href: '/references',
+	},
+	{
 		title: 'Components',
 		href: '/components',
 		noLink: true,

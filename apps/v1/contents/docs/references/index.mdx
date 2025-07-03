@@ -1,0 +1,34 @@
+---
+title: CLI Options Reference
+description: The CLI options reference list.
+previous: installation
+next: components/moderation/ban
+---
+
+## Global CLI Options
+
+| Option | Description | Default |
+| --- | --- | --- |
+| <Code>--name &lt;name&gt;</Code> | Set the project name | `discord-forge` |
+| <Code>--template &lt;template&gt;</Code> | Set the template to use | `default` |
+| <Code>--typescript</Code>, <Code>-t</Code> | Use TypeScript instead of JavaScript | `false` |
+| <Code>--dependencies</Code>, <Code>-d</Code> | Install dependencies after scaffolding | `true` |
+| <Code>--engine &lt;engine&gt;</Code> | Set the engine to use | `default` |
+| <Code>--version</Code> | Show CLI version | `0.1.0` |
+| <Code>--help</Code> | Show help | — |
+
+---
+
+## <Code>add</Code> Command
+
+### Arguments
+
+| Argument | Description |
+| --- | --- |
+| `[features...]` | List of features/modules to add (e.g., `ban`, `kick`, `warn`) |
+
+### Options
+
+| Option               | Description            |
+| -------------------- | ---------------------- |
+| `--typescript`, `-t` | Use TypeScript modules |

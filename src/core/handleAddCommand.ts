@@ -7,11 +7,29 @@ import ora from 'ora';
 
 const AVAILABLE_FEATURES = ['ban', 'kick', 'warn'];
 
-export async function handleAddCommand(features?: string | string[]) {
+export async function handleAddCommand(
+	typescript: boolean,
+	features?: string | string[],
+) {
 	let selectedFeatures: string[] = [];
 
+	let ts = false;
+
+	if (typeof features === 'object' && features.length > 0) {
+		if (features[features.length - 1].includes('-')) {
+			features.pop();
+		}
+	}
+
 	if (!features || (Array.isArray(features) && features.length === 0)) {
-		const { chosen } = await inquirer.prompt([
+		const { chosen, TYPESCRIPT } = await inquirer.prompt([
+			{
+				name: 'TYPESCRIPT',
+				type: 'confirm',
+				message: 'Do you want to use TypeScript?',
+				when: () => !typescript, // Only ask if typescript is not already set
+				default: true,
+			},
 			{
 				name: 'chosen',
 				type: 'checkbox',
@@ -20,9 +38,11 @@ export async function handleAddCommand(features?: string | string[]) {
 			},
 		]);
 		selectedFeatures = chosen;
+		ts = !TYPESCRIPT ? typescript : TYPESCRIPT; // Use the TypeScript option from the prompt
 	} else {
 		// If it's a string, put it in an array, otherwise use the array as is
 		selectedFeatures = Array.isArray(features) ? features : [features];
+		ts = typescript; // Use the provided TypeScript option or default to false
 	}
 
 	console.log('\n');
@@ -43,12 +63,12 @@ export async function handleAddCommand(features?: string | string[]) {
 
 	for (const feat of selectedFeatures) {
 		if (AVAILABLE_FEATURES.includes(feat)) {
-			await installFeature(feat);
+			await installFeature(feat, ts);
 		}
 	}
 }
 
-async function installFeature(name: string) {
+async function installFeature(name: string, ts: boolean) {
 	let featureLoader = ora(`Installing feature "${name}"...`).start();
 
 	const envData = path.join(process.cwd(), 'components.json');
@@ -66,17 +86,11 @@ async function installFeature(name: string) {
 			'components.json not found, using default configuration',
 		);
 
-		// Detect project type by looking for .ts files
-		const hasTypeScript =
-			fs.existsSync(path.join(process.cwd(), 'tsconfig.json')) ||
-			fs.existsSync(path.join(process.cwd(), 'src', 'index.ts')) ||
-			fs.existsSync(path.join(process.cwd(), 'index.ts'));
-
 		// Default configuration
 		parseEnvData = {
-			ts: hasTypeScript,
+			ts: ts,
 			aliases: {
-				index: `src/index.${hasTypeScript ? 'ts' : 'js'}`,
+				index: `src/index.${ts ? 'ts' : 'js'}`,
 				components: 'src/components',
 				commands: 'src/commands',
 			},
@@ -85,7 +99,7 @@ async function installFeature(name: string) {
 		featureLoader = ora(`Detecting project type...`).start();
 		await new Promise(res => setTimeout(res, 500));
 		featureLoader.succeed(
-			`Project type detected: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`,
+			`Project type detected: ${ts ? 'TypeScript' : 'JavaScript'}`,
 		);
 	} else {
 		parseEnvData = JSON.parse(fs.readFileSync(envData, 'utf-8'));

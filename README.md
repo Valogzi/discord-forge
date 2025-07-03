@@ -44,7 +44,7 @@ You can add many independent components with the CLI, make sure you run the CLI 
 
 [Components] is an optional argument
 
-_Command files are always copied to the template's command folder. But you can change the copy path for event files in components.json at the template root._
+_Please note that the CLI does not work without an index in the root of a src folder._
 
 with npm
 
@@ -59,6 +59,36 @@ with pnpm
   # or
   pnpm dlx create-discord-forge@latest add [components]
 ```
+
+# CLI Options Reference
+
+## Global CLI Options
+
+| Option | Description | Default |
+| --- | --- | --- |
+| `--name <name>` | Set the project name | `discord-forge` |
+| `--template <template>` | Set the template to use | `default` |
+| `--typescript`, `-t` | Use TypeScript instead of JavaScript | `false` |
+| `--dependencies`, `-d` | Install dependencies after scaffolding | `true` |
+| `--engine <engine>` | Set the engine to use | `default` |
+| `--version` | Show CLI version | `0.1.0` |
+| `--help` | Show help | — |
+
+---
+
+## `add` Command
+
+### Arguments
+
+| Argument | Description |
+| --- | --- |
+| `[features...]` | List of features/modules to add (e.g., `ban`, `kick`, `command-slash`) |
+
+### Options
+
+| Option               | Description            |
+| -------------------- | ---------------------- |
+| `--typescript`, `-t` | Use TypeScript modules |
 
 ## License
 

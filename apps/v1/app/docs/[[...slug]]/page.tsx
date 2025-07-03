@@ -55,7 +55,7 @@ export default async function DocsPage({ params: { slug = [] } }: PageProps) {
 										</div>
 										<span className="flex items-center text-lg">
 											<ChevronLeft className="inline mr-1" />
-											{finalPrevious}.
+											{finalPrevious}
 										</span>
 									</div>
 								</Link>

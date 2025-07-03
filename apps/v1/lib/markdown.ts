@@ -9,10 +9,12 @@ import rehypeCodeTitles from 'rehype-code-titles';
 
 // custom components imports
 import Note from '@/components/note';
+import Code from '@/components/code';
 
 // add custom components
 const components = {
 	Note,
+	Code,
 };
 
 // can be used for other pages like blogs, Guides etc
