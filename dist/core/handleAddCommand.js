@@ -27,7 +27,7 @@ async function handleAddCommand(features) {
         // If it's a string, put it in an array, otherwise use the array as is
         selectedFeatures = Array.isArray(features) ? features : [features];
     }
-    console.log('\n\n');
+    console.log('\n');
     const mainLoader = (0, ora_1.default)('Validating selected features...').start();
     await new Promise(res => setTimeout(res, 500));
     for (const feat of selectedFeatures) {
@@ -155,6 +155,9 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
         indexLoader.fail(`Index file not found: ${indexPath}`);
         return;
     }
+    else {
+        indexLoader.succeed(`Index file found: ${path_1.default.relative(process.cwd(), indexPath)}`);
+    }
     // Charger le fichier index
     const sourceFile = project.addSourceFileAtPath(indexPath);
     // Trouver les fichiers events à importer
@@ -162,6 +165,9 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
     if (!fs_1.default.existsSync(eventsPath)) {
         indexLoader.info('No event files to import');
         return;
+    }
+    else {
+        indexLoader.succeed(`Event files found: ${eventsPath}`);
     }
     const eventFiles = fs_1.default
         .readdirSync(eventsPath)
@@ -204,6 +210,7 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
             }
         }
     }
+    indexLoader.succeed(`Imports added to index file: ${path_1.default.relative(process.cwd(), indexPath)}`);
     indexLoader = (0, ora_1.default)('Adding handler calls to index file...').start();
     await new Promise(res => setTimeout(res, 300));
     // Trouver où ajouter les appels de handlers (avant client.login)

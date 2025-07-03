@@ -25,7 +25,7 @@ export async function handleAddCommand(features?: string | string[]) {
 		selectedFeatures = Array.isArray(features) ? features : [features];
 	}
 
-	console.log('\n\n');
+	console.log('\n');
 
 	const mainLoader = ora('Validating selected features...').start();
 	await new Promise(res => setTimeout(res, 500));
@@ -224,6 +224,10 @@ async function addHandlersToIndex(
 	if (!fs.existsSync(indexPath)) {
 		indexLoader.fail(`Index file not found: ${indexPath}`);
 		return;
+	} else {
+		indexLoader.succeed(
+			`Index file found: ${path.relative(process.cwd(), indexPath)}`,
+		);
 	}
 
 	// Charger le fichier index
@@ -234,6 +238,8 @@ async function addHandlersToIndex(
 	if (!fs.existsSync(eventsPath)) {
 		indexLoader.info('No event files to import');
 		return;
+	} else {
+		indexLoader.succeed(`Event files found: ${eventsPath}`);
 	}
 
 	const eventFiles = fs
@@ -291,6 +297,10 @@ async function addHandlersToIndex(
 			}
 		}
 	}
+
+	indexLoader.succeed(
+		`Imports added to index file: ${path.relative(process.cwd(), indexPath)}`,
+	);
 
 	indexLoader = ora('Adding handler calls to index file...').start();
 	await new Promise(res => setTimeout(res, 300));

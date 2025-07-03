@@ -113,7 +113,7 @@ const mainAction = async () => {
 		`../../templates/${TEMPLATE}/${isTs}`,
 	);
 
-	console.log('\n\n');
+	console.log('\n');
 
 	const templateLoader = ora('Loading template...').start();
 	await new Promise(res => setTimeout(res, 1000));

@@ -99,7 +99,7 @@ const mainAction = async () => {
     const { guildId, clientId, token } = await answers;
     const isTs = TYPESCRIPT ? 'ts' : 'js';
     const templatePath = path_1.default.join(__dirname, `../../templates/${TEMPLATE}/${isTs}`);
-    console.log('\n\n');
+    console.log('\n');
     const templateLoader = (0, ora_1.default)('Loading template...').start();
     await new Promise(res => setTimeout(res, 1000));
     templateLoader.succeed(`Using template: ${templatePath}`);
