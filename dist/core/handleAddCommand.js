@@ -8,7 +8,7 @@ const inquirer_1 = __importDefault(require("inquirer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const ts_morph_1 = require("ts-morph");
-const boxen_1 = __importDefault(require("boxen"));
+const ora_1 = __importDefault(require("ora"));
 const AVAILABLE_FEATURES = ['ban', 'kick', 'warn'];
 async function handleAddCommand(features) {
     let selectedFeatures = [];
@@ -27,27 +27,29 @@ async function handleAddCommand(features) {
         // If it's a string, put it in an array, otherwise use the array as is
         selectedFeatures = Array.isArray(features) ? features : [features];
     }
+    const mainLoader = (0, ora_1.default)('Validating selected features...').start();
+    await new Promise(res => setTimeout(res, 500));
     for (const feat of selectedFeatures) {
         if (!AVAILABLE_FEATURES.includes(feat)) {
-            console.error((0, boxen_1.default)(`❌ Unknown feature: ${feat}`, {
-                padding: { top: 0, bottom: 0, left: 1, right: 1 },
-                borderStyle: 'single',
-                borderColor: 'red',
-            }));
+            mainLoader.fail(`Unknown feature: ${feat}`);
             continue; // Continue with the other features instead of returning
         }
-        await installFeature(feat);
+    }
+    mainLoader.succeed(`${selectedFeatures.length} feature(s) validated successfully`);
+    for (const feat of selectedFeatures) {
+        if (AVAILABLE_FEATURES.includes(feat)) {
+            await installFeature(feat);
+        }
     }
 }
 async function installFeature(name) {
+    let featureLoader = (0, ora_1.default)(`Installing feature "${name}"...`).start();
     const envData = path_1.default.join(process.cwd(), 'components.json');
     let parseEnvData;
+    featureLoader.text = 'Checking components.json configuration...';
+    await new Promise(res => setTimeout(res, 300));
     if (!fs_1.default.existsSync(envData)) {
-        console.log((0, boxen_1.default)('⚠️ components.json not found, using default configuration\n🔁 Event files will be installed to src/components', {
-            padding: 1,
-            borderStyle: 'round',
-            borderColor: 'yellow',
-        }));
+        featureLoader.warn('components.json not found, using default configuration');
         // Detect project type by looking for .ts files
         const hasTypeScript = fs_1.default.existsSync(path_1.default.join(process.cwd(), 'tsconfig.json')) ||
             fs_1.default.existsSync(path_1.default.join(process.cwd(), 'src', 'index.ts')) ||
@@ -61,29 +63,33 @@ async function installFeature(name) {
                 commands: 'src/commands',
             },
         };
-        console.log((0, boxen_1.default)(`📋 Detected project type: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`, {
-            padding: { top: 0, bottom: 0, left: 1, right: 1 },
-            borderStyle: 'single',
-            borderColor: 'cyan',
-        }));
+        featureLoader = (0, ora_1.default)(`Detecting project type...`).start();
+        await new Promise(res => setTimeout(res, 500));
+        featureLoader.succeed(`Project type detected: ${hasTypeScript ? 'TypeScript' : 'JavaScript'}`);
     }
     else {
         parseEnvData = JSON.parse(fs_1.default.readFileSync(envData, 'utf-8'));
+        featureLoader.succeed('Configuration loaded from components.json');
     }
     const templatePath = path_1.default.join(__dirname, '../../modules/components', name);
     const metadataPath = path_1.default.join(templatePath, 'meta.json');
+    featureLoader = (0, ora_1.default)('Validating feature template...').start();
+    await new Promise(res => setTimeout(res, 300));
     if (!fs_1.default.existsSync(templatePath)) {
-        console.error(`⚠️ Feature "${name}" is not implemented yet.`);
+        featureLoader.fail(`Feature "${name}" is not implemented yet.`);
         return;
     }
     if (!fs_1.default.existsSync(metadataPath)) {
-        console.error(`⚠️ meta.json not found for feature "${name}"`);
+        featureLoader.fail(`meta.json not found for feature "${name}"`);
         return;
     }
     const metadata = JSON.parse(fs_1.default.readFileSync(metadataPath, 'utf-8'));
     const subFolder = metadata.ranking;
     const targetBasePath = process.cwd();
+    featureLoader.succeed('Feature template validated successfully');
     // First, automatically copy all event files to components
+    featureLoader = (0, ora_1.default)('Copying event files...').start();
+    await new Promise(res => setTimeout(res, 500));
     const eventsPath = path_1.default.join(templatePath, 'files', 'events');
     if (fs_1.default.existsSync(eventsPath)) {
         const eventFiles = fs_1.default
@@ -96,7 +102,13 @@ async function installFeature(name) {
             const targetPath = path_1.default.join(targetBasePath, targetSourcePath, subFolder, eventFile);
             copyFileWithAliases(sourcePath, targetPath);
         }
+        featureLoader.succeed(`${eventFiles.length} event file(s) copied successfully`);
     }
+    else {
+        featureLoader.info('No event files found to copy');
+    }
+    featureLoader = (0, ora_1.default)('Copying command files...').start();
+    await new Promise(res => setTimeout(res, 500));
     const commandsPath = path_1.default.join(templatePath, 'files', 'commands');
     if (fs_1.default.existsSync(commandsPath)) {
         const commandFiles = fs_1.default
@@ -109,6 +121,10 @@ async function installFeature(name) {
             const targetPath = path_1.default.join(targetBasePath, targetSourcePath, subFolder, commandFile);
             copyFileWithAliases(sourcePath, targetPath);
         }
+        featureLoader.succeed(`${commandFiles.length} command file(s) copied successfully`);
+    }
+    else {
+        featureLoader.info('No command files found to copy');
     }
     // Count the total number of files copied
     const eventsCount = fs_1.default.existsSync(path_1.default.join(templatePath, 'files', 'events'))
@@ -122,21 +138,20 @@ async function installFeature(name) {
             .filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js')).length
         : 0;
     const totalFiles = eventsCount + commandsCount;
-    console.log((0, boxen_1.default)(`✅ Installed feature "${name}" (${parseEnvData.ts ? 'TypeScript' : 'JavaScript'}) - ${totalFiles} files copied`, {
-        padding: 1,
-        borderStyle: 'round',
-        borderColor: 'green',
-        textAlignment: 'center',
-    }));
+    featureLoader = (0, ora_1.default)('Finalizing feature installation...').start();
+    await new Promise(res => setTimeout(res, 300));
+    featureLoader.succeed(`Feature "${name}" installed successfully (${parseEnvData.ts ? 'TypeScript' : 'JavaScript'}) - ${totalFiles} files copied`);
     // Add handlers to the project index
     await addHandlersToIndex(name, parseEnvData, templatePath, subFolder);
 }
 async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFolder) {
+    let indexLoader = (0, ora_1.default)('Updating index file...').start();
+    await new Promise(res => setTimeout(res, 500));
     const project = new ts_morph_1.Project();
     const indexAlias = parseEnvData.aliases?.index || `src/index.${parseEnvData.ts ? 'ts' : 'js'}`;
     const indexPath = path_1.default.join(process.cwd(), indexAlias);
     if (!fs_1.default.existsSync(indexPath)) {
-        console.warn(`⚠️ Index file not found: ${indexPath}`);
+        indexLoader.fail(`Index file not found: ${indexPath}`);
         return;
     }
     // Charger le fichier index
@@ -144,12 +159,15 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
     // Trouver les fichiers events à importer
     const eventsPath = path_1.default.join(templatePath, 'files', 'events');
     if (!fs_1.default.existsSync(eventsPath)) {
+        indexLoader.info('No event files to import');
         return;
     }
     const eventFiles = fs_1.default
         .readdirSync(eventsPath)
         .filter(file => file.endsWith(parseEnvData.ts ? '.ts' : '.js'))
         .map(file => path_1.default.basename(file, path_1.default.extname(file)));
+    indexLoader = (0, ora_1.default)('Adding imports to index file...').start();
+    await new Promise(res => setTimeout(res, 300));
     // Ajouter les imports
     const componentsPath = parseEnvData.aliases?.components || 'src/components';
     const fullComponentsPath = path_1.default.join(process.cwd(), componentsPath, subFolder);
@@ -185,6 +203,8 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
             }
         }
     }
+    indexLoader = (0, ora_1.default)('Adding handler calls to index file...').start();
+    await new Promise(res => setTimeout(res, 300));
     // Trouver où ajouter les appels de handlers (avant client.login)
     const clientLogin = sourceFile
         .getDescendantsOfKind(ts_morph_1.SyntaxKind.CallExpression)
@@ -221,11 +241,7 @@ async function addHandlersToIndex(featureName, parseEnvData, templatePath, subFo
     }
     // Sauvegarder les modifications
     await sourceFile.save();
-    console.log((0, boxen_1.default)(`📝 Updated: ${path_1.default.relative(process.cwd(), indexPath)}`, {
-        padding: { top: 0, bottom: 0, left: 1, right: 1 },
-        borderStyle: 'single',
-        borderColor: 'blue',
-    }));
+    indexLoader.succeed(`Index file updated: ${path_1.default.relative(process.cwd(), indexPath)}`);
 }
 function copyFileWithAliases(sourcePath, targetPath) {
     const targetDir = path_1.default.dirname(targetPath);

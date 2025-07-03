@@ -7,6 +7,8 @@ import { exec, execSync } from 'child_process';
 import { say } from 'cfonts';
 import boxen from 'boxen';
 
+import ora from 'ora';
+
 const defaultProjectName = path.basename(process.cwd());
 
 const mainAction = async () => {
@@ -64,6 +66,30 @@ const mainAction = async () => {
 			default: true,
 		},
 		{
+			type: 'confirm',
+			name: 'wantAutoConfigSetup',
+			message: 'Do you want to automatically configure the bot?',
+			default: true,
+		},
+		{
+			type: 'input',
+			name: 'guildId',
+			message: 'Enter your guild ID (or press Enter to skip):',
+			when: answers => answers.wantAutoConfigSetup,
+		},
+		{
+			type: 'input',
+			name: 'clientId',
+			message: 'Enter your client bot ID (or press Enter to skip):',
+			when: answers => answers.wantAutoConfigSetup,
+		},
+		{
+			type: 'password',
+			name: 'token',
+			message: 'Enter your bot secret token (or press Enter to skip):',
+			when: answers => answers.wantAutoConfigSetup,
+		},
+		{
 			type: 'select',
 			name: 'bin',
 			message: `Which engine do you want to use?`,
@@ -78,101 +104,121 @@ const mainAction = async () => {
 
 	const { PROJECT_NAME, TEMPLATE, TYPESCRIPT, installDeps, bin } =
 		await answers;
+
+	const { guildId, clientId, token } = await answers;
+
 	const isTs = TYPESCRIPT ? 'ts' : 'js';
 	const templatePath = path.join(
 		__dirname,
 		`../../templates/${TEMPLATE}/${isTs}`,
 	);
-	console.log('\n\n');
-	console.log(
-		boxen(`📂 Using template: ${templatePath}`, {
-			padding: { top: 0, bottom: 0, left: 1, right: 1 },
-			borderStyle: 'round',
-			borderColor: 'cyan',
-		}),
-	);
+
+	const templateLoader = ora('Loading template...').start();
+	await new Promise(res => setTimeout(res, 1000));
+	templateLoader.succeed(`Using template: ${templatePath}`);
 	const targetPath = path.join(
 		process.cwd(),
 		PROJECT_NAME == '.' ? '' : PROJECT_NAME,
 	);
 
+	let projectLoader = ora('Checking target directory...').start();
+
 	if (PROJECT_NAME !== '.') {
 		if (fs.existsSync(targetPath)) {
-			console.log(
-				boxen(
-					`⚠️ The directory ${targetPath} already exists. Please choose another name.`,
-					{
-						padding: 1,
-						borderStyle: 'round',
-						borderColor: 'yellow',
-					},
-				),
+			await new Promise(res => setTimeout(res, 500));
+			projectLoader.fail(
+				`The directory ${targetPath} already exists. Please choose another name.`,
+			);
+			return;
+		} else {
+			await new Promise(res => setTimeout(res, 500));
+			// If the project name is not '.', use the specified directory
+			projectLoader.succeed(`Using directory: ${targetPath}`);
+		}
+	} else {
+		await new Promise(res => setTimeout(res, 500));
+		// If the project name is '.', use the current directory
+		projectLoader.succeed(`Using current directory: ${process.cwd()}.`);
+	}
+
+	// process.cwd()/<PROJECT_NAME>/config.json or process.cwd()/config.json
+	const configDir =
+		PROJECT_NAME == '.'
+			? process.cwd()
+			: path.join(process.cwd(), PROJECT_NAME);
+
+	const configPath = path.join(configDir, 'config.json');
+
+	const configGuildId = guildId ? guildId : '';
+	const configClientId = clientId ? clientId : '';
+	let configToken = token ? token : '';
+
+	projectLoader = ora('Checking Discord token...').start();
+	await new Promise(res => setTimeout(res, 2000));
+
+	const discordTokenVerification = await fetch(
+		'https://discord.com/api/v10/users/@me',
+		{
+			headers: { Authorization: `Bot ${configToken}` },
+		},
+	);
+
+	if (!discordTokenVerification.ok) {
+		projectLoader.fail('Failed to verify the provided Discord token.');
+		configToken = '';
+	} else {
+		projectLoader.succeed('Discord token verified successfully.');
+	}
+
+	const configContent = {
+		guildId: configGuildId,
+		clientId: configClientId,
+		token: configToken,
+	};
+
+	const configContentParser = JSON.stringify(configContent, null, 2);
+
+	projectLoader = ora('Creating config.json file...').start();
+	await new Promise(res => setTimeout(res, 1000));
+
+	if (!fs.existsSync(configDir)) {
+		fs.mkdirSync(configDir, { recursive: true });
+	}
+
+	fs.writeFileSync(configPath, configContentParser, 'utf8');
+	projectLoader.succeed(`Config file created at ${configPath}`);
+
+	projectLoader = ora('Creating project files...').start();
+	await new Promise(res => setTimeout(res, 1500));
+
+	fs.cpSync(templatePath, targetPath, { recursive: true });
+	projectLoader.succeed(
+		`The "${PROJECT_NAME}" project has been successfully created!`,
+	);
+
+	if (installDeps) {
+		projectLoader = ora('Installing dependencies...').start();
+		try {
+			execSync(`cd ${PROJECT_NAME} && ${bin} install`, { stdio: 'inherit' });
+			projectLoader.succeed('Dependencies installed successfully!');
+
+			if (TYPESCRIPT) {
+				projectLoader = ora('Setting up TypeScript environment...').start();
+				await new Promise(res => setTimeout(res, 1000));
+				projectLoader.succeed('TypeScript development environment ready!');
+			}
+		} catch (e) {
+			projectLoader.fail(
+				`Automatic installation failed. Run "${bin} install" manually.`,
 			);
 			return;
 		}
 	}
 
-	fs.cpSync(templatePath, targetPath, { recursive: true });
-	console.log(
-		boxen(`✅ The "${PROJECT_NAME}" project has been successfully created !`, {
-			padding: 1,
-			borderStyle: 'round',
-			borderColor: 'green',
-			textAlignment: 'center',
-		}),
-	);
-
-	if (installDeps) {
-		try {
-			console.log(
-				boxen('🔄 Installing dependencies...', {
-					padding: { top: 0, bottom: 0, left: 2, right: 2 },
-					borderStyle: 'single',
-					borderColor: 'yellow',
-					textAlignment: 'center',
-				}),
-			);
-			execSync(`cd ${PROJECT_NAME} && ${bin} install`, { stdio: 'inherit' });
-			console.log(
-				boxen('📦 Dependencies installed successfully!', {
-					padding: 1,
-					borderStyle: 'round',
-					borderColor: 'green',
-				}),
-			);
-
-			if (TYPESCRIPT) {
-				console.log(
-					boxen('🔧 TypeScript development environment ready!', {
-						padding: { top: 0, bottom: 0, left: 1, right: 1 },
-						borderStyle: 'single',
-						borderColor: 'blue',
-					}),
-				);
-			}
-		} catch (e) {
-			console.log(
-				boxen(
-					`⚠️ Automatic installation failed. Run "${bin} install" manually.`,
-					{
-						padding: 1,
-						borderStyle: 'double',
-						borderColor: 'yellow',
-					},
-				),
-			);
-		}
-	}
-
-	console.log(
-		boxen(`🚀 Ready! Go to "${PROJECT_NAME}" and launch your bot.`, {
-			padding: 1,
-			borderStyle: 'double',
-			borderColor: 'magenta',
-			textAlignment: 'center',
-			title: '🎉 SUCCESS',
-			titleAlignment: 'center',
-		}),
+	projectLoader = ora('Finalizing setup...').start();
+	await new Promise(res => setTimeout(res, 1000));
+	projectLoader.succeed(
+		`🚀 Ready! Go to "${PROJECT_NAME}" and launch your bot.`,
 	);
 };
 
