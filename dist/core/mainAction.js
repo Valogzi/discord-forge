@@ -11,7 +11,7 @@ const cfonts_1 = require("cfonts");
 const boxen_1 = __importDefault(require("boxen"));
 const ora_1 = __importDefault(require("ora"));
 const defaultProjectName = path_1.default.basename(process.cwd());
-const mainAction = async () => {
+const mainAction = async (name, template, typescript, dependencies, engine) => {
     const author = 'Author: Valogzi';
     const github = 'GitHub: https://github.com/valogzi';
     const description = '🚀 Welcome to Discord Forge CLI to easily configure Discord.js bot template ';
@@ -36,28 +36,33 @@ const mainAction = async () => {
     const answers = inquirer_1.default.prompt([
         {
             type: 'input',
-            name: 'PROJECT_NAME',
+            name: 'projectName',
             message: 'Project name:',
             default: defaultProjectName,
             validate: input => input.length > 0 || 'The name cannot be empty.',
+            when: () => !name,
         },
         {
             type: 'select',
-            name: 'TEMPLATE',
+            name: 'selectedTemplate',
             message: 'Select a template:',
             choices: [{ name: 'Default', value: 'default' }],
+            default: 'default',
+            when: () => !template,
         },
         {
             type: 'confirm',
             name: 'TYPESCRIPT',
             message: 'Do you want to use TypeScript?',
             default: true,
+            when: () => !typescript,
         },
         {
             type: 'confirm',
-            name: 'installDeps',
+            name: 'deps',
             message: 'Do you want to install dependencies?',
             default: true,
+            when: () => !dependencies,
         },
         {
             type: 'confirm',
@@ -85,8 +90,9 @@ const mainAction = async () => {
         },
         {
             type: 'select',
-            name: 'bin',
+            name: 'motor',
             message: `Which engine do you want to use?`,
+            when: () => !engine,
             choices: [
                 { name: '📦 npm', value: 'npm' },
                 { name: '🪄  pnpm', value: 'pnpm' },
@@ -95,9 +101,15 @@ const mainAction = async () => {
             ],
         },
     ]);
-    const { PROJECT_NAME, TEMPLATE, TYPESCRIPT, installDeps, bin } = await answers;
+    const { projectName, selectedTemplate, TYPESCRIPT, deps, motor } = await answers;
+    const PROJECT_NAME = name || projectName || defaultProjectName;
+    const TEMPLATE = template || selectedTemplate || 'default';
+    const installDeps = dependencies || deps || true;
+    const bin = engine || motor || 'npm';
+    const ts = typescript || TYPESCRIPT || false;
+    console.log(PROJECT_NAME, TEMPLATE, ts, installDeps, bin);
     const { guildId, clientId, token } = await answers;
-    const isTs = TYPESCRIPT ? 'ts' : 'js';
+    const isTs = ts ? 'ts' : 'js';
     const templatePath = path_1.default.join(__dirname, `../../templates/${TEMPLATE}/${isTs}`);
     console.log('\n');
     const templateLoader = (0, ora_1.default)('Loading template...').start();
@@ -164,7 +176,7 @@ const mainAction = async () => {
         try {
             (0, child_process_1.execSync)(`cd ${PROJECT_NAME} && ${bin} install`, { stdio: 'inherit' });
             projectLoader.succeed('Dependencies installed successfully!');
-            if (TYPESCRIPT) {
+            if (ts) {
                 projectLoader = (0, ora_1.default)('Setting up TypeScript environment...').start();
                 await new Promise(res => setTimeout(res, 1000));
                 projectLoader.succeed('TypeScript development environment ready!');
